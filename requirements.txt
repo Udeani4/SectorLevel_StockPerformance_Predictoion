@@ -3,3 +3,4 @@ requests
 ipykernel
 pandas
 openpyxl
+pandas_ta

@@ -1,0 +1,1 @@
+id,symbol,trade_date,open_price,close_price,volume,created_at,returns_pct,lag_return1,lag_return5,lag_return10,stock_MA_5,stock_MA_20,stock_MA_50,returns_volatility_20,returns_volatility_50,stock_RSI,MACD,MACD_hist,MACD_signal,stock_volume_MA_20
