@@ -4,3 +4,5 @@ ipykernel
 pandas
 openpyxl
 pandas_ta
+xgboost
+scikit-learn
