@@ -6,3 +6,6 @@ openpyxl
 pandas_ta
 xgboost
 scikit-learn
+matplotlib
+plotly
+nbformat
