@@ -5,7 +5,10 @@ pandas
 openpyxl
 pandas_ta
 xgboost
+lightgbm
 scikit-learn
+scikit-optimize
 matplotlib
 plotly
 nbformat
+pandas_datareader
