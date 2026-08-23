@@ -12,3 +12,4 @@ matplotlib
 plotly
 nbformat
 pandas_datareader
+pmdarima
