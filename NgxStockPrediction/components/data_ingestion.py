@@ -58,6 +58,32 @@ class DataIngestion:
 
         except Exception as e:
             raise NGXStockPredictionException(e,sys)
+
+    def clean_and_create_monthly_data(self, dataframe:pd.DataFrame):
+        try:
+            df=dataframe
+            df=df.drop(columns=['high_price','low_price'])
+            df.rename(columns={'trade_date':'date'},inplace=True)
+            df['date']=pd.to_datetime(df['date'])
+            df['month']=df['date'].dt.month
+            df['quarter']=df['date'].dt.quarter
+            df['year']=df['date'].dt.year
+
+            end_month_df = (
+                df
+                .sort_values("date")
+                .groupby(df["date"].dt.to_period("M"))
+                .tail(1)
+                .reset_index(drop=True)
+            )
+
+            end_month_df['returns']=end_month_df['close_price'].pct_change()*100
+
+            return end_month_df
+
+        except Exception as e:
+            raise NGXStockPredictionException(e,sys)
+
         
     def split_data_as_train_test(self, dataframe:pd.DataFrame):
         try:
@@ -88,8 +114,9 @@ class DataIngestion:
         try:
             dataframe=self.export_collection_as_dataframe()
             dataframe=self.export_data_into_feature_store(dataframe)
+            clean_monthly_dataframe=self.clean_and_create_monthly_data(dataframe=dataframe)
 
-            self.split_data_as_train_test(dataframe)
+            self.split_data_as_train_test(clean_monthly_dataframe)
 
             data_ingestion_artifact=DataIngestionArtifact(trained_file_path=self.data_ingestion_config.training_file_path,test_file_path=self.data_ingestion_config.testing_file_path)
 
