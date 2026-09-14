@@ -1,0 +1,20 @@
+columns:
+  - id: int64
+  - symbol: str
+  - date: datetime64[us]
+  - open_price: float64
+  - close_price: float64
+  - volume: int64
+  - created_at: str
+  - month: int32
+  - quarter: int32
+  - year: int32
+
+numerical_columns:
+  - id: int64
+  - open_price: float64
+  - close_price: float64
+  - volume: int64
+  - month: int32
+  - quarter: int32
+  - year: int32

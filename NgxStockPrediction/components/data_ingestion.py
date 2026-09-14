@@ -87,9 +87,13 @@ class DataIngestion:
         
     def split_data_as_train_test(self, dataframe:pd.DataFrame):
         try:
-            train_set,test_set=train_test_split(
-                dataframe,test_size=self.data_ingestion_config.train_test_split_ratio,shuffle=False
-            )
+            # train_set,test_set=train_test_split(
+            #     dataframe,test_size=self.data_ingestion_config.train_test_split_ratio,shuffle=False
+            # )
+            ## We just need the last 10 records
+            train_set = dataframe.iloc[:-10]
+            test_set = dataframe.iloc[-10:]  # the last 10 rows, for symmetry
+
             logging.info("Performed train test split on the dataframe")
             logging.info("Exited split_data_as_train_test method of Data_Ingestion class")
 

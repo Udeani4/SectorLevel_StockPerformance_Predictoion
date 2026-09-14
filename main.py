@@ -27,21 +27,32 @@
 
 ## let us test what we have done
 from NgxStockPrediction.components.data_ingestion import DataIngestion
+from NgxStockPrediction.components.data_validation import DataValidation
 from NgxStockPrediction.exception.exception import NGXStockPredictionException
 from NgxStockPrediction.logging.logger import logging
-from NgxStockPrediction.entity.config_entity import TrainingPipelineConfig,DataIngestionConfig
+from NgxStockPrediction.entity.config_entity import TrainingPipelineConfig,DataIngestionConfig, DataValidationConfig
 # from NgxStockPrediction.entity.artifact_entity import DataIngestionArtifact
 import sys, os
 
 
 if __name__ == "__main__":
     try:
+        filename="ZENITHBANK"
+
         trainingpipelineconfig=TrainingPipelineConfig()
-        dataingestionconfig=DataIngestionConfig(training_pipeline_config=trainingpipelineconfig, FILE_NAME="ZENITHBANK")
+
+        dataingestionconfig=DataIngestionConfig(training_pipeline_config=trainingpipelineconfig, FILE_NAME=filename)
         dataingestion=DataIngestion(data_ingestion_config=dataingestionconfig)
         logging.info("Initiate data ingestion")
         dataingestionartifact=dataingestion.initiate_data_ingestion()
         print(dataingestionartifact)
+
+        datavalidationconfig=DataValidationConfig(training_pipeline_config=trainingpipelineconfig,FILE_NAME=filename)
+        datavalidation=DataValidation(data_ingestion_artifact=dataingestionartifact,data_validation_config=datavalidationconfig)
+        logging.info("Initiate data validation")
+        datavalidationartifact=datavalidation.initiate_data_validation()
+        print(datavalidationartifact)
+        
     except Exception as e:
         raise NGXStockPredictionException(e,sys)
 
