@@ -37,7 +37,7 @@ import sys, os
 if __name__ == "__main__":
     try:
         trainingpipelineconfig=TrainingPipelineConfig()
-        dataingestionconfig=DataIngestionConfig(training_pipeline_config=trainingpipelineconfig, FILE_NAME="CHAMS")
+        dataingestionconfig=DataIngestionConfig(training_pipeline_config=trainingpipelineconfig, FILE_NAME="ZENITHBANK")
         dataingestion=DataIngestion(data_ingestion_config=dataingestionconfig)
         logging.info("Initiate data ingestion")
         dataingestionartifact=dataingestion.initiate_data_ingestion()

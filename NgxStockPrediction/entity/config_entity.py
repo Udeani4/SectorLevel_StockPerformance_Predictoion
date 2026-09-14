@@ -14,7 +14,7 @@ class TrainingPipelineConfig:
         timestamp=timestamp.strftime("%m_%d_%Y_%H_%M_%S")
         self.pipeline_name=training_pipeline.PIPELINE_NAME
         self.artifact_name=training_pipeline.ARTIFACT_DIR
-        self.artifact_dir=os.path.join(self.artifact_name,timestamp)
+        self.artifact_dir=os.path.join(self.artifact_name)
         self.model_price_dir=os.path.join("final_price_model")
         self.model_returns_dir=os.path.join("final_returns_model")
         self.timestamp:str=timestamp
@@ -25,7 +25,7 @@ class DataIngestionConfig:
         self.file_name=FILE_NAME
 
         self.data_ingestion_dir:str=os.path.join(
-            training_pipeline_config.artifact_dir,f'{self.file_name}_data_ingestion'
+            training_pipeline_config.artifact_dir,self.file_name,f'{self.file_name}_{training_pipeline.DATA_INGESTION_DIR_NAME}'
         )
         self.feature_store_file_path:str=os.path.join(
             self.data_ingestion_dir,
@@ -50,11 +50,11 @@ class DataIngestionConfig:
 
 
 class DataValidationConfig:
-    def __init__(self,training_pipeline_config:TrainingPipelineConfig):
-        
+    def __init__(self,training_pipeline_config:TrainingPipelineConfig, FILE_NAME:str):
+        self.file_name=FILE_NAME
+
         self.data_validation_dir:str=os.path.join(
-            training_pipeline_config.artifact_dir,
-            training_pipeline.DATA_VALIDATION_DIR_NAME
+            training_pipeline_config.artifact_dir,self.file_name,f"{self.file_name}_{training_pipeline.DATA_VALIDATION_DIR_NAME}"
         )
         self.valid_data_dir:str=os.path.join(
             self.data_validation_dir,
@@ -83,8 +83,8 @@ class DataValidationConfig:
 
         self.drift_report_file_path:str=os.path.join(
             self.data_validation_dir,
-            training_pipeline.DATA_VALIDATION_DRIFT_REPORT_DIR,
-            training_pipeline.DATA_VALIDATION_DRIFT_REPORT_FILE_NAME
+            f"{self.file_name}_{training_pipeline.DATA_VALIDATION_DRIFT_REPORT_DIR}",
+            f"{self.file_name}_{training_pipeline.DATA_VALIDATION_DRIFT_REPORT_FILE_NAME}"
         )
 
 class DataTransformationConfig:
