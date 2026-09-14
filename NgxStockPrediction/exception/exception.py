@@ -1,7 +1,7 @@
 import sys
 from NgxStockPrediction.logging.logger import logging
 
-class NetworkSecurityException(Exception):
+class NGXStockPredictionException(Exception):
     def __init__(self,error_message,error_details:sys):
         self.error_message=error_message
         _,_,exc_tb=error_details.exc_info() ## error_details is a type of sys. It is coming from the sys itself
@@ -21,4 +21,4 @@ if __name__ == "__main__":
         print("Ths will not be printed", a)
 
     except Exception as e:
-        raise NetworkSecurityException(e,sys)
+        raise NGXStockPredictionException(e,sys)
