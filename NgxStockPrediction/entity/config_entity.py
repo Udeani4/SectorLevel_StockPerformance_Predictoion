@@ -25,7 +25,7 @@ class DataIngestionConfig:
         self.file_name=FILE_NAME
 
         self.data_ingestion_dir:str=os.path.join(
-            training_pipeline_config.artifact_dir,self.file_name,f'{self.file_name}_{training_pipeline.DATA_INGESTION_DIR_NAME}'
+            training_pipeline_config.artifact_dir,self.file_name,training_pipeline.DATA_INGESTION_DIR_NAME
         )
         self.feature_store_file_path:str=os.path.join(
             self.data_ingestion_dir,
@@ -54,7 +54,7 @@ class DataValidationConfig:
         self.file_name=FILE_NAME
 
         self.data_validation_dir:str=os.path.join(
-            training_pipeline_config.artifact_dir,self.file_name,f"{self.file_name}_{training_pipeline.DATA_VALIDATION_DIR_NAME}"
+            training_pipeline_config.artifact_dir,self.file_name,training_pipeline.DATA_VALIDATION_DIR_NAME
         )
         self.valid_data_dir:str=os.path.join(
             self.data_validation_dir,
@@ -83,13 +83,15 @@ class DataValidationConfig:
 
         self.drift_report_file_path:str=os.path.join(
             self.data_validation_dir,
-            f"{self.file_name}_{training_pipeline.DATA_VALIDATION_DRIFT_REPORT_DIR}",
-            f"{self.file_name}_{training_pipeline.DATA_VALIDATION_DRIFT_REPORT_FILE_NAME}"
+            training_pipeline.DATA_VALIDATION_DRIFT_REPORT_DIR,
+            training_pipeline.DATA_VALIDATION_DRIFT_REPORT_FILE_NAME
         )
 
 class DataTransformationConfig:
-    def __init__(self,training_pipeline_config: TrainingPipelineConfig):
-        self.data_transformation_dir:str=os.path.join(training_pipeline_config.artifact_dir,training_pipeline.DATA_TRANSFORMATION_DIR_NAME)
+    def __init__(self,training_pipeline_config: TrainingPipelineConfig, FILE_NAME:str):
+        self.file_name=FILE_NAME
+
+        self.data_transformation_dir:str=os.path.join(training_pipeline_config.artifact_dir,self.file_name, training_pipeline.DATA_TRANSFORMATION_DIR_NAME)
 
         self.transformed_train_file_path:str=os.path.join(self.data_transformation_dir,training_pipeline.DATA_TRANSFORMATION_TRANSFORMED_DATA_DIR,training_pipeline.TRAIN_FILE_NAME.replace("csv","npy"))
 

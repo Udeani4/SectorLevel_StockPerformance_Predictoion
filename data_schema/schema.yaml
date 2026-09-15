@@ -18,3 +18,4 @@ numerical_columns:
   - month: int32
   - quarter: int32
   - year: int32
+  - returns: float64

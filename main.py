@@ -28,9 +28,11 @@
 ## let us test what we have done
 from NgxStockPrediction.components.data_ingestion import DataIngestion
 from NgxStockPrediction.components.data_validation import DataValidation
+from NgxStockPrediction.components.data_transformation import DataTransformation
+
 from NgxStockPrediction.exception.exception import NGXStockPredictionException
 from NgxStockPrediction.logging.logger import logging
-from NgxStockPrediction.entity.config_entity import TrainingPipelineConfig,DataIngestionConfig, DataValidationConfig
+from NgxStockPrediction.entity.config_entity import TrainingPipelineConfig,DataIngestionConfig,DataValidationConfig,DataTransformationConfig
 # from NgxStockPrediction.entity.artifact_entity import DataIngestionArtifact
 import sys, os
 
@@ -52,6 +54,12 @@ if __name__ == "__main__":
         logging.info("Initiate data validation")
         datavalidationartifact=datavalidation.initiate_data_validation()
         print(datavalidationartifact)
+
+        datatransformationconfig=DataTransformationConfig(training_pipeline_config=trainingpipelineconfig,FILE_NAME=filename)
+        datatransformation=DataTransformation(data_validation_artifact=datavalidationartifact,data_transformation_config=datatransformationconfig)
+        logging.info("Initiate data transformation")
+        datatransformationartifact=datatransformation.initiate_data_transformation(TARGET_COLUMN='close_price')
+        print(datatransformationartifact)
         
     except Exception as e:
         raise NGXStockPredictionException(e,sys)
