@@ -80,3 +80,40 @@ def load_object(file_path:str,)->object:
             return pickle.load(file_obj)
     except Exception as e:
         raise NGXStockPredictionException(e,sys) from e
+
+
+## THis should be under ml_utils
+def evaluate_models(X_train,y_train,X_test,y_test,models,params):
+    try:
+        test_report={}
+        train_report={}
+        model_object_dict={}
+
+        for i in range(len(list(models))):
+            model=list(models.values())[i]
+            model_params=params[list(models.keys())[i]]
+
+            gs=GridSearchCV(model,model_params,cv=3)
+            gs.fit(X_train,y_train)
+
+            model.set_params(**gs.best_params_) ## or you could just use model=gs.best_estimator_ and go straight to predicting. because the gs.best_estimator_ is the best fitted model
+            model.fit(X_train,y_train)
+
+            y_train_pred=model.predict(X_train)
+            y_test_pred=model.predict(X_test)
+
+            train_model_score=r2_score(y_train,y_train_pred)
+            test_model_score=r2_score(y_test,y_test_pred)
+
+            test_report[list(models.keys())[i]]=test_model_score
+
+            train_report[list(models.keys())[i]]=train_model_score
+
+            model_object_dict[list(models.keys())[i]]=model
+
+        return test_report, train_report, model_object_dict
+
+    except Exception as e:
+        raise NGXStockPredictionException(e,sys) from e
+
+
