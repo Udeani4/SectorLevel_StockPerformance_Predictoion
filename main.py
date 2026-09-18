@@ -29,10 +29,11 @@
 from NgxStockPrediction.components.data_ingestion import DataIngestion
 from NgxStockPrediction.components.data_validation import DataValidation
 from NgxStockPrediction.components.data_transformation import DataTransformation
+from NgxStockPrediction.components.model_trainer import ModelTrainer
 
 from NgxStockPrediction.exception.exception import NGXStockPredictionException
 from NgxStockPrediction.logging.logger import logging
-from NgxStockPrediction.entity.config_entity import TrainingPipelineConfig,DataIngestionConfig,DataValidationConfig,DataTransformationConfig
+from NgxStockPrediction.entity.config_entity import TrainingPipelineConfig,DataIngestionConfig,DataValidationConfig,DataTransformationConfig,ModelTrainerConfig
 # from NgxStockPrediction.entity.artifact_entity import DataIngestionArtifact
 import sys, os
 
@@ -40,6 +41,7 @@ import sys, os
 if __name__ == "__main__":
     try:
         filename="ZENITHBANK"
+        targetname="close_price"
 
         trainingpipelineconfig=TrainingPipelineConfig()
 
@@ -58,9 +60,25 @@ if __name__ == "__main__":
         datatransformationconfig=DataTransformationConfig(training_pipeline_config=trainingpipelineconfig,FILE_NAME=filename)
         datatransformation=DataTransformation(data_validation_artifact=datavalidationartifact,data_transformation_config=datatransformationconfig)
         logging.info("Initiate data transformation")
-        datatransformationartifact=datatransformation.initiate_data_transformation(TARGET_COLUMN='close_price')
+        datatransformationartifact=datatransformation.initiate_data_transformation(TARGET_COLUMN=targetname)
         print(datatransformationartifact)
-        
+
+        modeltrainerconfig=ModelTrainerConfig(training_pipeline_config=trainingpipelineconfig,FILE_NAME=filename,TARGET_NAME=targetname)
+        modeltrainer=ModelTrainer(model_trainer_config=modeltrainerconfig,data_validation_artifact=datavalidationartifact,data_transformation_artifact=datatransformationartifact)
+        logging.info("Initiate Model Trainer")
+        # modeltrainerartifact=modeltrainer.initiate_model_trainer(
+        #     model_type="sarima",
+        #     order=(0,2,0), 
+        #     seasonal_order=(2,1,0,12),
+        #     forecast_step=2 ## This will predict the next two future values
+        # )
+        modeltrainerartifact=modeltrainer.initiate_model_trainer(
+            model_type="sarimax",
+            order=(0,2,0), 
+            seasonal_order=(2,1,0,12),
+            forecast_step=0 ## We cant forecast further like we did in sarima. Because we will need to provide the explanatory variables (exog) for that forcast.
+        )
+        print(modeltrainerartifact)
     except Exception as e:
         raise NGXStockPredictionException(e,sys)
 

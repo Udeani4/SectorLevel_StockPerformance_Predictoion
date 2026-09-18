@@ -18,11 +18,12 @@ from statsmodels.tsa.statespace.sarimax import SARIMAX
 from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.preprocessing import StandardScaler
 import numpy as np
+import pandas as pd
 
 import mlflow ## For tracking and managing your machine learning project
 
 import dagshub
-dagshub.init(repo_owner='udeaniizu04', repo_name='NgxStockPrediction', mlflow=True) ## This is the template in dagshub(under experiment), after i have connected to my github repository. This part was copied only because the mlfow object is already here in ModelTrainer.track_mlflow
+# dagshub.init(repo_owner='udeaniizu04', repo_name='NgxStockPrediction', mlflow=True) ## This is the template in dagshub(under experiment), after i have connected to my github repository. This part was copied only because the mlfow object is already here in ModelTrainer.track_mlflow
 
 class ModelTrainer:
     def __init__(self,model_trainer_config:ModelTrainerConfig,data_validation_artifact: DataValidationArtifact,data_transformation_artifact:DataTransformationArtifact):
@@ -35,20 +36,26 @@ class ModelTrainer:
         except Exception as e:
             raise NGXStockPredictionException(e,sys)
         
-    def track_mlflow(self,best_model,classification_metric):
-        with mlflow.start_run():
-            f1_score=classification_metric.f1_score
-            precision_score=classification_metric.precision_score
-            recall_score=classification_metric.recall_score
+    @staticmethod
+    def read_data(file_path):
+        try:
+            return pd.read_csv(file_path)
+        except Exception as e:
+            raise NGXStockPredictionException(e,sys)  
+    # def track_mlflow(self,best_model,classification_metric):
+    #     with mlflow.start_run():
+    #         f1_score=classification_metric.f1_score
+    #         precision_score=classification_metric.precision_score
+    #         recall_score=classification_metric.recall_score
 
-            mlflow.log_metric('f1_score',f1_score) ## logging in the local environment but because we are now connected to dagshub it will all be pushed to the remote repository instead
-            mlflow.log_metric('precision_score',precision_score)
-            mlflow.log_metric('recall_score',recall_score)
-            mlflow.sklearn.log_model(best_model,'model')
+    #         mlflow.log_metric('f1_score',f1_score) ## logging in the local environment but because we are now connected to dagshub it will all be pushed to the remote repository instead
+    #         mlflow.log_metric('precision_score',precision_score)
+    #         mlflow.log_metric('recall_score',recall_score)
+    #         mlflow.sklearn.log_model(best_model,'model')
 
     
-    def sarima_train_model(self,train_data,test_data,order,seasonal_order,forcast_step): ## we will do both train and evaluation here so we dont have to create another file for it
-        
+    def sarima_train_model(self,train_data,test_data,order,seasonal_order,forecast_step): ## we will do both train and evaluation here so we dont have to create another file for it
+
         y_train=train_data[self.target_name].dropna()
         y_test=test_data[self.target_name].dropna()
 
@@ -59,16 +66,22 @@ class ModelTrainer:
         )
 
         model = mod.fit(disp=False)
-        fcst=model.forecast(step=10+forcast_step)
+        fcst=model.forecast(steps=10+forecast_step)
 
-        y_pred=fcst[:10] ## We just need the first 10 predictions to evaluate the model because the test size is 10
+        y_pred = fcst.iloc[:10] ## We just need the first 10 predictions to evaluate the model because the test size is 10
+        future  = fcst.iloc[-forecast_step:]
 
-        performance_metric=get_performance_score(y_true=y_test,y_pred=y_pred)
+        print(f'complete forecast {self.target_name}: ', fcst)
+        print(f'The next two months {self.target_name}: ',future)
 
+
+        performance_metric = get_performance_score(
+            y_true=np.asarray(y_test), y_pred=np.asarray(y_pred)
+        )
         ## track the experiments with flow
-        self.track_mlflow(
-            f"{self.target_name}",performance_metric
-        ) ## a folder will be created called mlruns. You will be able to see the number of experiments (folder) that will contain the outputs of the entire run flow. inside the mlruns->0 (folder) contains the experiments. NOTE: It is advisable not to push mlruns folder to github unless it is very necessary for prodution. 
+        # self.track_mlflow(
+        #     f"{self.target_name}",performance_metric
+        # ) ## a folder will be created called mlruns. You will be able to see the number of experiments (folder) that will contain the outputs of the entire run flow. inside the mlruns->0 (folder) contains the experiments. NOTE: It is advisable not to push mlruns folder to github unless it is very necessary for prodution. 
         
         ## But dagshub will now collect all the experiment files instead. since we have initialized it
 
@@ -85,30 +98,30 @@ class ModelTrainer:
 
         return model_trainer_artifact
 
-    def sarimax_train_model(self,X_train,y_train,X_test,y_test,order,seasonal_order,forcast_step): ## we will do both train and evaluation here so we dont have to create another file for it
+    def sarimax_train_model(self,X_train,y_train,X_test,y_test,order,seasonal_order,forecast_step): ## we will do both train and evaluation here so we dont have to create another file for it
 
-        endog = y_train.dropna()
-        exog = X_train.dropna()
-
-        # 2, 1, 1, 3, 2, 2
         mod = SARIMAX(
-        endog=endog,
-        exog=exog,
-        order=order,
-        seasonal_order=seasonal_order,
+            endog=y_train,
+            exog=X_train,
+            order=order,
+            seasonal_order=seasonal_order,
         )
 
         model = mod.fit(disp=False)
-        fcst = model.forecast(steps=10+forcast_step, exog = X_test)
+        fcst = model.forecast(steps=10+forecast_step, exog = X_test)
 
-        y_pred=fcst[:10] ## We just need the first 10 predictions to evaluate the model because the test size is 10
+        y_pred = fcst[:10] ## We just need the first 10 predictions to evaluate the model because the test size is 10
 
-        performance_metric=get_performance_score(y_true=y_test,y_pred=y_pred)
+        print(f'complete forecast {self.target_name}: ', fcst)
+
+        performance_metric = get_performance_score(
+            y_true=np.asarray(y_test), y_pred=np.asarray(y_pred)
+        )
 
         ## track the experiments with flow
-        self.track_mlflow(
-            model,performance_metric
-        ) ## a folder will be created called mlruns. You will be able to see the number of experiments (folder) that will contain the outputs of the entire run flow. inside the mlruns->0 (folder) contains the experiments. NOTE: It is advisable not to push mlruns folder to github unless it is very necessary for prodution. 
+        # self.track_mlflow(
+        #     model,performance_metric
+        # ) ## a folder will be created called mlruns. You will be able to see the number of experiments (folder) that will contain the outputs of the entire run flow. inside the mlruns->0 (folder) contains the experiments. NOTE: It is advisable not to push mlruns folder to github unless it is very necessary for prodution. 
         
         ## But dagshub will now collect all the experiment files instead. since we have initialized it
 
@@ -127,19 +140,22 @@ class ModelTrainer:
     
 
         
-    def initiate_model_trainer(self, model_type:str,order=(1,1,1),seasonal_order=(1,1,1,12), forcast_step=1)->ModelTrainerArtifact:
+    def initiate_model_trainer(self, model_type:str,order=(1,1,1),seasonal_order=(1,1,1,12), forecast_step=1)->ModelTrainerArtifact:
         try:
             if model_type.lower()=="sarima":
                 train_file_path=self.data_validation_artifact.valid_train_file_path
 
                 test_file_path=self.data_validation_artifact.valid_test_file_path
 
+                train_data=self.read_data(train_file_path)
+                test_data=self.read_data(test_file_path)
+
                 model_trainer_artifact=self.sarima_train_model(
-                    train_data=train_file_path,
-                    test_data=test_file_path,
+                    train_data=train_data,
+                    test_data=test_data,
                     order=order,
                     seasonal_order=seasonal_order,
-                    forcast_step=forcast_step
+                    forecast_step=forecast_step
                 )
 
                 return model_trainer_artifact
@@ -161,7 +177,15 @@ class ModelTrainer:
                     test_arr[:,-1],
                 )
 
-                model_trainer_artifact=self.train_model(x_train,y_train,x_test,y_test)
+                model_trainer_artifact=self.sarimax_train_model(
+                    X_train=x_train,
+                    y_train=y_train,
+                    X_test=x_test,
+                    y_test=y_test,
+                    order=order,
+                    seasonal_order=seasonal_order,
+                    forecast_step=forecast_step
+                )
 
                 return model_trainer_artifact
             

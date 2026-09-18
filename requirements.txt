@@ -8,6 +8,7 @@ xgboost
 lightgbm
 scikit-learn
 scikit-optimize
+statsmodels
 matplotlib
 plotly
 nbformat
