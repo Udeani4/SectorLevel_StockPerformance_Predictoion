@@ -95,7 +95,7 @@ class DataTransformation:
 
             ## recall the transformed output will be an array
 
-            train_arr=np.c_[transformed_input_train_feature,np.array(target_feature_train_df)]
+            train_arr=np.c_[transformed_input_train_feature,np.array(target_feature_train_df)] ## This part converts the target feature into a numpy array and append it to the transformed input feature 
 
             test_arr=np.c_[transformed_input_test_feature,np.array(target_feature_test_df)]
 

@@ -22,11 +22,6 @@ class DataTransformationArtifact:
     transformed_train_file_path:str
     transformed_test_file_path:str
 
-# @dataclass
-# class ClassificationMetricArtifact:
-#     r2_score: float
-#     rmse: float
-#     recall_score: float
 
 @dataclass
 class PerformanceMetricArtifact:
@@ -36,5 +31,4 @@ class PerformanceMetricArtifact:
 @dataclass
 class ModelTrainerArtifact:
     trained_model_file_path:str
-    trained_metric_artifact: PerformanceMetricArtifact
     test_metric_artifact: PerformanceMetricArtifact
