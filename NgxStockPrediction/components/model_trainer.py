@@ -19,6 +19,8 @@ from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.preprocessing import StandardScaler
 import numpy as np
 import pandas as pd
+import json
+
 
 import mlflow ## For tracking and managing your machine learning project
 
@@ -137,6 +139,108 @@ class ModelTrainer:
         logging.info(f"Model trainer artifact: {model_trainer_artifact}") 
 
         return model_trainer_artifact
+
+    
+    def sarima_grid_search_model_trainer(self, train_data, test_data,
+                                            grid={'p':1,'i':1,'q':1,'P':1,'D':1,'Q':1},
+                                            season=12):
+
+        y_train = train_data[self.target_name].dropna()
+        y_test = test_data[self.target_name].dropna()
+
+        scores = []
+        for p in range(grid['p']):
+            for i in range(grid['i']):
+                for q in range(grid['q']):
+                    for P in range(grid['P']):
+                        for D in range(grid['D']):
+                            for Q in range(grid['Q']):
+                                try:
+                                    mod = SARIMAX(y_train, order=(p, i, q),
+                                                seasonal_order=(P, D, Q, season))
+                                    res = mod.fit(disp=False)
+                                    fcst = res.forecast(steps=10)
+
+                                    performance_metric = get_performance_score(
+                                                y_true=np.asarray(y_test), y_pred=np.asarray(fcst)
+                                            )
+                                    
+                                    score = [p, i, q, P, D, Q,
+                                            performance_metric['accuracy'],
+                                            performance_metric['rmse']]
+                                    
+                                    print(score)
+                                    scores.append(score)
+                                    del mod
+                                    del res
+                                except Exception as e:
+                                    print(f'errored: (p={p},i={i},q={q},P={P},D={D},Q={Q}) -> {e}')
+
+        
+        if not scores:
+            raise ValueError("No SARIMAX combination succeeded — check for a systematic error above.")
+
+
+        result_df = pd.DataFrame(scores, columns=['p', 'i', 'q', 'P', 'D', 'Q', 'score', 'rmse'])
+        result_df = result_df.sort_values('score', ascending=False)
+
+        best_row = result_df.iloc[0]
+        best_param = {
+            'order': (int(best_row['p']), int(best_row['i']), int(best_row['q'])),
+            'seasonal_order': (int(best_row['P']), int(best_row['D']), int(best_row['Q']), season),
+            'r2_score': float(best_row['score']),
+            'rmse': float(best_row['rmse']),
+        }
+        print('best_param',best_param)
+
+        return best_param
+
+    def sarimax_grid_search_model_trainer(self, X_train,y_train,X_test,y_test,grid={'p':1,'i':1,'q':1,'P':1,'D':1,'Q':1},season=12):
+        scores = []
+        for p in range(grid['p']):
+            for i in range(grid['i']):
+                for q in range(grid['q']):
+                    for P in range(grid['P']):
+                        for D in range(grid['D']):
+                            for Q in range(grid['Q']):
+                                try:
+                                    mod = SARIMAX(endog=y_train,
+                                                exog=X_train, 
+                                                order=(p, i, q),
+                                                seasonal_order=(P, D, Q, season))
+                                    res = mod.fit(disp=False)
+                                    fcst = res.forecast(steps=10, exog=X_test)
+                                    performance_metric = get_performance_score(
+                                                y_true=np.asarray(y_test), y_pred=np.asarray(fcst)
+                                            )
+                                    
+                                    score = [p, i, q, P, D, Q,
+                                            performance_metric['accuracy'],
+                                            performance_metric['rmse']]
+                                    
+                                    print(score)
+                                    scores.append(score)
+                                    del mod
+                                    del res
+                                except Exception as e:
+                                    print(f'errored: (p={p},i={i},q={q},P={P},D={D},Q={Q}) -> {e}')
+
+        if not scores:
+            raise ValueError("No SARIMAX combination succeeded — check for a systematic error above.")
+        
+        result_df = pd.DataFrame(scores, columns=['p', 'i', 'q', 'P', 'D', 'Q', 'score', 'rmse'])
+        result_df = result_df.sort_values('score', ascending=False)
+
+        best_row = result_df.iloc[0]
+        best_param = {
+            'order': (int(best_row['p']), int(best_row['i']), int(best_row['q'])),
+            'seasonal_order': (int(best_row['P']), int(best_row['D']), int(best_row['Q']), season),
+            'r2_score': float(best_row['score']),
+            'rmse': float(best_row['rmse']),
+        }
+        print('best_param',best_param)
+
+        return best_param
     
 
         
