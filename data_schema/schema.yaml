@@ -19,3 +19,170 @@ numerical_columns:
   - quarter: int32
   - year: int32
   - returns: float64
+
+me_columns:
+  - Quarter: str
+  - Month: str
+  - date: datetime64[us]
+  - consumer_price_index(CPI)_monthly: float64
+  - Crude Oil Price_monthly: float64
+  - Domestic Production_monthly: float64
+  - Crude Oil Export_monthly: float64
+  - Inflation_allItemsAverage_monthly: float64
+  - Money Supply(M2)_monthly: float64
+  - currency in circulation_monthly: float64
+  - bank reserves_monthly: float64
+  - netForeignAssets_monthly: float64
+  - netDomesticAssets_monthly: float64
+  - netDomesticCredit_monthly: float64
+  - creditToGovernment_monthly: float64
+  - creditToPrivateSector_monthly: float64
+  - MonetaryPolicyRate_monthly: float64
+  - TreasuryBillRate_monthly: float64
+  - Lending_Rate_monthly: float64
+  - Exchange_Rate(USD-EOP)_monthly: float64
+  - Premium_Motor_Spirit(PMS)_monthly: float64
+  - GDP_AGRICULTURE(agric)_quarterly: float64
+  - gdp_agric_Crop Production_quarterly: float64
+  - gdp_agric_Livestock_quarterly: float64
+  - gdp_agric_Forestry_quarterly: float64
+  - gdp_Fishing_quarterly: float64
+  - GDP_INDUSTRY(ind)_quarterly: float64
+  - gdp_ind_Mining and Quarrying(MQ)_quarterly: float64
+  - gdp_ind_MQ_Crude Petroleum and Natural Gas_quarterly: float64
+  - gdp_ind_MQ_Coal Mining_quarterly: float64
+  - gdp_ind_MQ_Metal Ores_quarterly: float64
+  - gdp_ind_MQ_Quarrying and Other Minerals_quarterly: float64
+  - gdp_ind_Manufacturing(mfg)_quarterly: float64
+  - gdp_ind_mfg_Oil Refining_quarterly: float64
+  - gdp_ind_mfg_Cement_quarterly: float64
+  - gdp_ind_mfg_Food, Beverage and Tobacco_quarterly: float64
+  - gdp_ind_mfg_Textile, Apparel and Footwear_quarterly: float64
+  - gdp_ind_mfg_Wood and Wood Products_quarterly: float64
+  - gdp_ind_mfg_Pulp, Paper and Paper Products_quarterly: float64
+  - gdp_ind_mfg_Chemical and Pharmaceutical Products_quarterly: float64
+  - gdp_ind_mfg_Non-Metallic Products_quarterly: float64
+  - gdp_ind_mfg_Plastic and Rubber Products_quarterly: float64
+  - gdp_ind_mfg_Electrical and Electronics_quarterly: float64
+  - gdp_ind_mfg_Basic Metal, Iron and Steel_quarterly: float64
+  - gdp_ind_mfg_Motor Vehicles and Assembly_quarterly: float64
+  - gdp_ind_mfg_Other Manufacturing_quarterly: float64
+  - gdp_ind_Electricity, Gas, Steam & Air conditioner_quarterly: float64
+  - gdp_ind_Water supply, Sewage, Waste Management_quarterly: float64
+  - gdp_ind_Construction_quarterly: float64
+  - GDP_SERVICES(svc)_quarterly: float64
+  - gdp_svc_Trade_quarterly: float64
+  - gdp_svc_Accommodation and Food Services_quarterly: float64
+  - gdp_svc_Transportation and Storage(TS)_quarterly: float64
+  - gdp_svc_TS_RoadTransport_quarterly: float64
+  - gdp_svc_TS_Rail Transport & Pipelines_quarterly: float64
+  - gdp_svc_TS_Water Transport_quarterly: float64
+  - gdp_svc_TS_Air Transport_quarterly: float64
+  - gdp_svc_TS_Transport Services_quarterly: float64
+  - gdp_svc_TS_Post and Courier Services_quarterly: float64
+  - gdp_svc_Information and Communication(IC)_quarterly: float64
+  - gdp_svc_IC_Telecommunications and Information Services_quarterly: float64
+  - gdp_svc_IC_Publishing_quarterly: float64
+  - gdp_svc_IC_Motion Pictures, Sound Recording and Music Production_quarterly: float64
+  - gdp_svc_IC_Broadcasting_quarterly: float64
+  - gdp_svc_Arts, Entertainment & Recreation_quarterly: float64
+  - gdp_svc_Financial and Insurance(FI)_quarterly: float64
+  - gdp_svc_FI_Financial Institutions_quarterly: float64
+  - gdp_svc_FI_Insurance_quarterly: float64
+  - gdp_svc_Real Estate_quarterly: float64
+  - gdp_svc_Professional, Scientific & Technical Services_quarterly: float64
+  - gdp_svc_Administrative and Support Services_quarterly: float64
+  - gdp_svc_Public Administration_quarterly: float64
+  - gdp_svc_Education_quarterly: float64
+  - gdp_svc_Human Health & Social Services_quarterly: float64
+  - gdp_svc_Other Services_quarterly: float64
+  - GDP at Current Basic Prices_quarterly: float64
+  - Net Taxes on Products_quarterly: float64
+  - GDP at Current Market Prices_quarterly: float64
+  - foreign_reserve_Gross(USD)_monthly: float64
+  - foreign_reserve_Liquid(USD)_monthly: float64
+  - Year: int64
+  - Month_idx: int64
+  - foreign_reserve_gross(USD)_daily: float64
+  - foreign_reserve_liquid(USD)_daily: float64
+
+me_numerical_columns:
+  - consumer_price_index(CPI)_monthly: float64
+  - Crude Oil Price_monthly: float64
+  - Domestic Production_monthly: float64
+  - Crude Oil Export_monthly: float64
+  - Inflation_allItemsAverage_monthly: float64
+  - Money Supply(M2)_monthly: float64
+  - currency in circulation_monthly: float64
+  - bank reserves_monthly: float64
+  - netForeignAssets_monthly: float64
+  - netDomesticAssets_monthly: float64
+  - netDomesticCredit_monthly: float64
+  - creditToGovernment_monthly: float64
+  - creditToPrivateSector_monthly: float64
+  - MonetaryPolicyRate_monthly: float64
+  - TreasuryBillRate_monthly: float64
+  - Lending_Rate_monthly: float64
+  - Exchange_Rate(USD-EOP)_monthly: float64
+  - Premium_Motor_Spirit(PMS)_monthly: float64
+  - GDP_AGRICULTURE(agric)_quarterly: float64
+  - gdp_agric_Crop Production_quarterly: float64
+  - gdp_agric_Livestock_quarterly: float64
+  - gdp_agric_Forestry_quarterly: float64
+  - gdp_Fishing_quarterly: float64
+  - GDP_INDUSTRY(ind)_quarterly: float64
+  - gdp_ind_Mining and Quarrying(MQ)_quarterly: float64
+  - gdp_ind_MQ_Crude Petroleum and Natural Gas_quarterly: float64
+  - gdp_ind_MQ_Coal Mining_quarterly: float64
+  - gdp_ind_MQ_Metal Ores_quarterly: float64
+  - gdp_ind_MQ_Quarrying and Other Minerals_quarterly: float64
+  - gdp_ind_Manufacturing(mfg)_quarterly: float64
+  - gdp_ind_mfg_Oil Refining_quarterly: float64
+  - gdp_ind_mfg_Cement_quarterly: float64
+  - gdp_ind_mfg_Food, Beverage and Tobacco_quarterly: float64
+  - gdp_ind_mfg_Textile, Apparel and Footwear_quarterly: float64
+  - gdp_ind_mfg_Wood and Wood Products_quarterly: float64
+  - gdp_ind_mfg_Pulp, Paper and Paper Products_quarterly: float64
+  - gdp_ind_mfg_Chemical and Pharmaceutical Products_quarterly: float64
+  - gdp_ind_mfg_Non-Metallic Products_quarterly: float64
+  - gdp_ind_mfg_Plastic and Rubber Products_quarterly: float64
+  - gdp_ind_mfg_Electrical and Electronics_quarterly: float64
+  - gdp_ind_mfg_Basic Metal, Iron and Steel_quarterly: float64
+  - gdp_ind_mfg_Motor Vehicles and Assembly_quarterly: float64
+  - gdp_ind_mfg_Other Manufacturing_quarterly: float64
+  - gdp_ind_Electricity, Gas, Steam & Air conditioner_quarterly: float64
+  - gdp_ind_Water supply, Sewage, Waste Management_quarterly: float64
+  - gdp_ind_Construction_quarterly: float64
+  - GDP_SERVICES(svc)_quarterly: float64
+  - gdp_svc_Trade_quarterly: float64
+  - gdp_svc_Accommodation and Food Services_quarterly: float64
+  - gdp_svc_Transportation and Storage(TS)_quarterly: float64
+  - gdp_svc_TS_RoadTransport_quarterly: float64
+  - gdp_svc_TS_Rail Transport & Pipelines_quarterly: float64
+  - gdp_svc_TS_Water Transport_quarterly: float64
+  - gdp_svc_TS_Air Transport_quarterly: float64
+  - gdp_svc_TS_Transport Services_quarterly: float64
+  - gdp_svc_TS_Post and Courier Services_quarterly: float64
+  - gdp_svc_Information and Communication(IC)_quarterly: float64
+  - gdp_svc_IC_Telecommunications and Information Services_quarterly: float64
+  - gdp_svc_IC_Publishing_quarterly: float64
+  - gdp_svc_IC_Motion Pictures, Sound Recording and Music Production_quarterly: float64
+  - gdp_svc_IC_Broadcasting_quarterly: float64
+  - gdp_svc_Arts, Entertainment & Recreation_quarterly: float64
+  - gdp_svc_Financial and Insurance(FI)_quarterly: float64
+  - gdp_svc_FI_Financial Institutions_quarterly: float64
+  - gdp_svc_FI_Insurance_quarterly: float64
+  - gdp_svc_Real Estate_quarterly: float64
+  - gdp_svc_Professional, Scientific & Technical Services_quarterly: float64
+  - gdp_svc_Administrative and Support Services_quarterly: float64
+  - gdp_svc_Public Administration_quarterly: float64
+  - gdp_svc_Education_quarterly: float64
+  - gdp_svc_Human Health & Social Services_quarterly: float64
+  - gdp_svc_Other Services_quarterly: float64
+  - GDP at Current Basic Prices_quarterly: float64
+  - Net Taxes on Products_quarterly: float64
+  - GDP at Current Market Prices_quarterly: float64
+  - foreign_reserve_Gross(USD)_monthly: float64
+  - foreign_reserve_Liquid(USD)_monthly: float64
+  - foreign_reserve_gross(USD)_daily: float64
+  - foreign_reserve_liquid(USD)_daily: float64
