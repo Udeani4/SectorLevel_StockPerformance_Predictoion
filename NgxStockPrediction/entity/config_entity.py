@@ -113,3 +113,24 @@ class ModelTrainerConfig:
         )
         self.expected_accuracy:float=training_pipeline.MODEL_TRAINER_EXPECTED_SCORE
         self.overfitting_underfitting_threshold=training_pipeline.MODEL_TRAINER_OVER_FITTING_UNDER_FITTING_THRESHOLD
+
+class ModelPerformanceTrackerConfig:
+    def __init__(self,training_pipeline_config: TrainingPipelineConfig, FILE_NAME:str, TARGET_NAME:str):
+        self.file_name=FILE_NAME
+        self.target_name=TARGET_NAME
+
+        self.model_performance_dir:str=os.path.join(
+            training_pipeline_config.artifact_dir,self.file_name,training_pipeline.MODEL_PERFORMANCE_DIR_NAME
+        )
+        # self.model_target_performance_dir:str=os.path.join(
+        #     self.model_performance_dir,self.target_name
+        # )
+        self.model_performance_data_path:str=os.path.join(
+            self.model_performance_dir,self.target_name,training_pipeline.MODEL_PERFORMANCE_DATA
+        )
+        self.model_performance_tracker_path:str=os.path.join(
+            self.model_performance_dir,self.target_name,training_pipeline.MODEL_PERFORMANCE_TRACKER
+        )
+
+
+        

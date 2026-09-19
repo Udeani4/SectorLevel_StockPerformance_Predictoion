@@ -11,8 +11,11 @@ def get_performance_score(y_true,y_pred)->PerformanceMetricArtifact:
         model_mse=mean_squared_error(y_true,y_pred)
         model_rmse=np.sqrt(model_mse)
 
-        performance_metrics={'accuracy':model_accuracy,'rmse':model_rmse}
-        
+        performance_metrics=PerformanceMetricArtifact(
+            r2_score=model_accuracy,
+            rmse=model_rmse
+        )
+        # {'accuracy':model_accuracy,'rmse':model_rmse}
         return performance_metrics
     except Exception as e:
         raise NGXStockPredictionException(e,sys)

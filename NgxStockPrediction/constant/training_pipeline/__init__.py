@@ -69,3 +69,11 @@ MODEL_TRAINER_EXPECTED_SCORE:float=0.6
 MODEL_TRAINER_OVER_FITTING_UNDER_FITTING_THRESHOLD:float=0.05
 
 TRAINING_BUCKET_NAME="NgxStockPredictionDean"
+
+
+"""
+Model Performance tracker constants
+"""
+MODEL_PERFORMANCE_DIR_NAME:str="performance_tracker"
+MODEL_PERFORMANCE_DATA:str="performance_data.csv"
+MODEL_PERFORMANCE_TRACKER:str="performance_tracker.csv"

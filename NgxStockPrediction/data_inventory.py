@@ -51,48 +51,50 @@ class NGXStockDataExtract:
         df = pd.DataFrame(all_stocks['stocks'])
         df.to_csv("stock_data/All_Stocks_Info",index=False)
 
-    def get_stock_data_from_ngx_pulse(self, ticker, ngx_api_key):
+    def get_stock_data_from_ngx_pulse(self, tickers:list, ngx_api_key):
 
         os.makedirs("stock_data", exist_ok=True)
 
-        url = f"https://www.ngxpulse.ng/api/ngxdata/prices/{ticker}" 
+        for ticker in tickers:
 
-        headers = {
-            "X-API-Key": ngx_api_key
-        }
+            url = f"https://www.ngxpulse.ng/api/ngxdata/prices/{ticker}" 
 
-        params = {
-            "from": "2017-01-01",
-            "to": "2026-07-18"
-        }
-        
-        try:            
-            response = requests.get(
-                url,
-                headers=headers,
-                params=params,
-                timeout=30
-            )
+            headers = {
+                "X-API-Key": ngx_api_key
+            }
 
-            print(f"{ticker}: {response.status_code}")
+            params = {
+                "from": "2017-01-01",
+                "to": "2026-07-18"
+            }
+            
+            try:            
+                response = requests.get(
+                    url,
+                    headers=headers,
+                    params=params,
+                    timeout=30
+                )
 
-            if response.status_code != 200:
-                print(response.text)
-                return
+                print(f"{ticker}: {response.status_code}")
 
-            data = response.json()
+                if response.status_code != 200:
+                    print(response.text)
+                    return
 
-            if "prices" not in data:
-                print(f"{ticker}: No prices returned")
-                return
+                data = response.json()
 
-            df = pd.DataFrame(data["prices"])
-            df.to_csv(f"stock_data/{ticker}.csv", index=False)
+                if "prices" not in data:
+                    print(f"{ticker}: No prices returned")
+                    return
 
-            print(f"{ticker}: Saved {len(df)} rows")
+                df = pd.DataFrame(data["prices"])
+                df.to_csv(f"stock_data/{ticker}.csv", index=False)
 
-        except Exception as e:
-            print(f"{ticker}: {e}")
+                print(f"{ticker}: Saved {len(df)} rows")
+
+            except Exception as e:
+                print(f"{ticker}: {e}")
 
     def load_stock_data_to_local_storage(self, ngx_api_key):
         df=pd.read_csv('stock_data/All_Stocks_Info')
@@ -153,6 +155,99 @@ class NGXStockDataExtract:
 
         except Exception as e:
             raise NGXStockPredictionException(e, sys)
+        
+    def update_data_to_mongodb(self, records, database, collection):
+        """
+        Updates existing stock records and inserts new records into MongoDB.
+
+        A record is uniquely identified by its symbol and date.
+
+        Args:
+            records (list): List of stock documents to update/insert.
+            database (str): Target database name.
+            collection (str): Target collection name.
+
+        Returns:
+            int: Number of records processed.
+        """
+        try:
+            self.database = database
+            self.collection = collection
+            self.records = records
+
+            # Create MongoDB connection
+            self.mongo_client = pymongo.MongoClient(mongo_db_uri)
+
+            # Access database
+            self.database = self.mongo_client[self.database]
+
+            # Access collection
+            self.collection = self.database[self.collection]
+
+            # Create unique index
+            # self.collection.create_index(
+            #     [("symbol", 1), ("date", 1)],
+            #     unique=True
+            # )
+
+            # Create update operations
+            operations = []
+
+            for record in self.records:
+
+                operations.append(
+                    UpdateOne(
+                        {
+                            "symbol": record["symbol"],
+                            "date": record["date"]
+                        },
+                        {
+                            "$set": record
+                        },
+                        upsert=True
+                    )
+                )
+
+            # Execute all updates/inserts in bulk
+            if operations:
+                result = self.collection.bulk_write(
+                    operations,
+                    ordered=False
+                )
+
+                return {
+                    "matched": result.matched_count,
+                    "modified": result.modified_count,
+                    "inserted": result.upserted_count
+                }
+
+            return {
+                "matched": 0,
+                "modified": 0,
+                "inserted": 0
+            }
+
+        except Exception as e:
+            raise NGXStockPredictionException(e, sys)
+
+    def replace_data_to_mongodb(self, records, database, collection):
+
+        try:
+            self.mongo_client = pymongo.MongoClient(mongo_db_uri)
+
+            db = self.mongo_client[database]
+            collection = db[collection]
+
+            # Delete existing records
+            collection.delete_many({})
+
+            # Insert new records
+            collection.insert_many(records)
+
+            return len(records)
+
+        except Exception as e:
+            raise NGXStockPredictionException(e, sys)
 
 
 if __name__ == '__main__':
@@ -188,11 +283,8 @@ if __name__ == '__main__':
     # no_of_records=ngxstockdataobj.insert_data_to_mongodb(records,DATABASE,Collection)
     # print(no_of_records)
 
-
-
-    ## We will return to this. It will help us make sure our mongodb stock_data has unique symbol&date
     mongo_client = pymongo.MongoClient(mongo_db_uri)
-    
+
     database = mongo_client["NGX_Stock_ME_Database"]
     collection = database["stock_data"]
 
