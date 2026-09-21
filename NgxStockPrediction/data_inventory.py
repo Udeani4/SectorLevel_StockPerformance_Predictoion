@@ -65,7 +65,7 @@ class NGXStockDataExtract:
 
             params = {
                 "from": "2017-01-01",
-                "to": "2026-07-18"
+                # "to": "2026-07-18"
             }
             
             try:            
