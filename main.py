@@ -74,10 +74,10 @@ if __name__ == "__main__":
         #     forecast_step=2 ## This will predict the next two future values
         # )
         modeltrainerartifact=modeltrainer.initiate_model_trainer(
-            model_type="sarimax",
+            model_type="sarima",
             order=(0,2,0), 
             seasonal_order=(2,1,0,12),
-            forecast_step=0 ## We cant forecast further like we did in sarima. Because we will need to provide the explanatory variables (exog) for that forcast.
+            forecast_step=1 ## We cant forecast further like we did in sarima. Because we will need to provide the explanatory variables (exog) for that forcast.
         )
         print(modeltrainerartifact)
 
@@ -85,8 +85,8 @@ if __name__ == "__main__":
         modelperformancetrackerconfig=ModelPerformanceTrackerConfig(training_pipeline_config=trainingpipelineconfig,FILE_NAME=filename,TARGET_NAME=targetname)
         modelperformancetracker=ModelPerformanceTracker(model_performance_tracker_config=modelperformancetrackerconfig,model_trainer_artifact=modeltrainerartifact,data_validation_artifact=datavalidationartifact)
         logging.info("initiate model performance tracker")
-        performance_update=modelperformancetracker.initiate_performance_tracker()
-        print('performance_update: ',performance_update)
+        performance_metric_artifact=modelperformancetracker.initiate_performance_tracker()
+        print(performance_metric_artifact)
 
     except Exception as e:
         raise NGXStockPredictionException(e,sys)

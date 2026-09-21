@@ -29,6 +29,11 @@ class PerformanceMetricArtifact:
     rmse: float
 
 @dataclass
+class PerformanceMetricTrackerArtifact:
+    r2_score: bool
+    rmse: bool
+
+@dataclass
 class ModelTrainerArtifact:
     trained_model_file_path:str
     test_metric_artifact: PerformanceMetricArtifact

@@ -4,7 +4,7 @@ import sys
 from NgxStockPrediction.exception.exception import NGXStockPredictionException
 from NgxStockPrediction.logging.logger import logging
 
-from NgxStockPrediction.entity.artifact_entity import DataTransformationArtifact,ModelTrainerArtifact,DataValidationArtifact
+from NgxStockPrediction.entity.artifact_entity import DataTransformationArtifact,ModelTrainerArtifact,DataValidationArtifact,PerformanceMetricTrackerArtifact
 from NgxStockPrediction.entity.config_entity import ModelTrainerConfig,ModelPerformanceTrackerConfig
 
 from NgxStockPrediction.utils.ml_utils.model.estimator import TimeNgxStockModel
@@ -54,7 +54,9 @@ class ModelPerformanceTracker:
             train_data = self.read_data(train_file_path)
             model_object = load_object(model_object_path)
 
-            fcst = model_object.forecast(step=10 + forecast_step)
+            fcst = model_object.forecast(steps=10 + forecast_step)
+            fcst=list(fcst)
+
             y_test = test_data[self.target_name]
 
             performance_df = pd.DataFrame({
@@ -89,6 +91,8 @@ class ModelPerformanceTracker:
 
             movement_cm = confusion_matrix(performance_df['true_movement'], performance_df['predicted_movement'])
             print(movement_cm)
+
+            os.makedirs(os.path.dirname(performance_data_path), exist_ok=True)
             performance_df.to_csv(performance_data_path)
 
             return {'confusion_matrix': movement_cm, f'next_month_{self.target_name}': fcst[10]}
@@ -97,79 +101,97 @@ class ModelPerformanceTracker:
             raise NGXStockPredictionException(e,sys)
 
     def update_performance_tracker(self, movement_cm, next_fcst):
-        """Appends a new row to the performance tracker and flags metric degradation."""
-        try:
-            tracker_path = self.model_performance_tracker_config.model_performance_tracker_path
-            performance_data_path = self.model_performance_tracker_config.model_performance_data_path
+        performance_data_path = self.model_performance_tracker_config.model_performance_data_path
+        tracker_path = self.model_performance_tracker_config.model_performance_tracker_path
+        model_parameters = self.model_trainer_artifact.training_parameters
 
-            if os.path.exists(performance_data_path):
-                performance_df=self.read_data(performance_data_path)
+        if os.path.exists(performance_data_path):
+            performance_df = self.read_data(performance_data_path)
+        else:
+            return "Performance Dataframe does not exist"
+
+        tn, fp, fn, tp = movement_cm.ravel()
+        movement_accuracy = (tp + tn) / (tp + tn + fp + fn)
+
+        r2 = r2_score(performance_df['true'], performance_df['predicted'])
+        rmse = np.sqrt(mean_squared_error(performance_df['true'], performance_df['predicted']))
+
+        last_row = performance_df.iloc[-1]
+        year = int(last_row['year'])
+        month = int(last_row['month'])
+
+        if month == 12:
+            next_year, next_month = year + 1, 1
+        else:
+            next_year, next_month = year, month + 1
+
+        new_row = {
+            'year': next_year,
+            'month_predicted': next_month,
+            f"next_month_{self.target_name}_prediction": next_fcst,
+            'r2_score': r2,
+            'rmse': rmse,
+            'tp': tp,
+            'tn': tn,
+            'fp': fp,
+            'fn': fn,
+            'movement_accuracy': movement_accuracy,
+            'order': model_parameters['order'],
+            'seasonal_order':model_parameters['seasonal_order']
+        }
+
+        if os.path.exists(tracker_path):
+            tracker_df = pd.read_csv(tracker_path)
+        else:
+            tracker_df = pd.DataFrame(columns=list(new_row.keys()))
+
+        # check if an entry for this year/month already exists
+        existing_mask = (tracker_df['year'] == next_year) & (tracker_df['month_predicted'] == next_month)
+
+        if existing_mask.any():
+            existing_row = tracker_df.loc[existing_mask].iloc[0]
+
+            # compare all fields except year/month_predicted (the key itself)
+            compare_cols = [c for c in new_row.keys() if c not in ('year', 'month_predicted')]
+            is_identical = all(
+                np.isclose(existing_row[c], new_row[c]) for c in compare_cols
+            )
+
+            if is_identical:
+                # nothing changed — skip write entirely, just recompute the comparison result
+                previous_row = tracker_df.iloc[tracker_df.index.get_loc(existing_mask.idxmax()) - 1] \
+                    if existing_mask.idxmax() > 0 else None
             else:
-                return "Performance Dataframe does not exist"
-        
-            
-            tn, fp, fn, tp = movement_cm.ravel()
-            movement_accuracy = (tp + tn) / (tp + tn + fp + fn)
-
-            r2 = r2_score(performance_df['true'], performance_df['predicted'])
-            rmse = np.sqrt(mean_squared_error(performance_df['true'], performance_df['predicted']))
-
-            year = int(last_row['year'])
-            month = int(last_row['month'])
-
-            if month == 12:
-                next_year, next_month = year + 1, 1
-            else:
-                next_year, next_month = year, month + 1
-
-            last_row = performance_df.iloc[-1]
-
-            new_row = {
-                'year': next_year,
-                'month_predicted': next_month,
-                f"next_month_{self.target_name}_prediction": next_fcst,
-                'r2_score': r2,
-                'rmse': rmse,
-                'tp': tp,
-                'tn': tn,
-                'fp': fp,
-                'fn': fn,
-                'movement_accuracy': movement_accuracy
-            }
-
-            if os.path.exists(tracker_path):
-                tracker_df = self.read_data(tracker_path)
-                previous_row = tracker_df.iloc[-1] if len(tracker_df) > 0 else None
-            else:
-                tracker_df = pd.DataFrame(columns=list(new_row.keys()))
-                previous_row = None
-
+                # data changed — replace the existing row in place
+                tracker_df.loc[existing_mask, list(new_row.keys())] = list(new_row.values())
+                tracker_df.to_csv(tracker_path, index=False)
+                prev_idx = existing_mask.idxmax() - 1
+                previous_row = tracker_df.loc[prev_idx] if prev_idx >= 0 else None
+        else:
+            # brand new entry — append
+            previous_row = tracker_df.iloc[-1] if len(tracker_df) > 0 else None
             tracker_df = pd.concat([tracker_df, pd.DataFrame([new_row])], ignore_index=True)
             tracker_df.to_csv(tracker_path, index=False)
 
-            if previous_row is not None:
-                result = {
-                    'r2_score': r2 < previous_row['r2_score'],
-                    'rmse': rmse > previous_row['rmse']
-                }
-            else:
-                result = {'r2_score': False, 'rmse': False}
+        if previous_row is not None:
+            result = {
+                'r2_score': r2 < previous_row['r2_score'],
+                'rmse': rmse > previous_row['rmse']
+            }
+        else:
+            result = {'r2_score': False, 'rmse': False}
 
-            return result
-        
-        except Exception as e:
-            raise NGXStockPredictionException(e,sys)
-
-    def initiate_performance_tracker(self):
+        return result
+    
+    def initiate_performance_tracker(self)->PerformanceMetricTrackerArtifact:
         """
         Creates and updates the performance 
         """
         try:
             performance_dict=self.create_performance_data()
-            performance_update=self.update_performance_tracker(movement_cm=performance_dict['confusion_matrix'],next_fcst=performance_dict[f'next_month_{self.target_name}'])
+            performance_metric_tracker_artifact=self.update_performance_tracker(movement_cm=performance_dict['confusion_matrix'],next_fcst=performance_dict[f'next_month_{self.target_name}'])
 
-            print('performance update:', performance_update)
-            return performance_update
+            return performance_metric_tracker_artifact
         except Exception as e:
             raise NGXStockPredictionException(e,sys)
         
