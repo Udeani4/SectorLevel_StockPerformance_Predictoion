@@ -32,3 +32,4 @@ class PerformanceMetricArtifact:
 class ModelTrainerArtifact:
     trained_model_file_path:str
     test_metric_artifact: PerformanceMetricArtifact
+    training_parameters: dict

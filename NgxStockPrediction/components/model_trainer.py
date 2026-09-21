@@ -58,6 +58,9 @@ class ModelTrainer:
     
     def sarima_train_model(self,train_data,test_data,order,seasonal_order,forecast_step): ## we will do both train and evaluation here so we dont have to create another file for it
 
+        ## store model parameters for the artifact
+        model_parmeters={'order':order,'seasonal_order':seasonal_order,'forecast_step':forecast_step}
+
         y_train=train_data[self.target_name].dropna()
         y_test=test_data[self.target_name].dropna()
 
@@ -95,12 +98,17 @@ class ModelTrainer:
 
         ## Model Trainer Artifact
         model_trainer_artifact=ModelTrainerArtifact(
-            trained_model_file_path=self.model_trainer_config.trained_model_file_path,test_metric_artifact=performance_metric)
+            trained_model_file_path=self.model_trainer_config.trained_model_file_path,test_metric_artifact=performance_metric,
+            training_parameters=model_parmeters)
         logging.info(f"Model trainer artifact: {model_trainer_artifact}") 
 
         return model_trainer_artifact
 
     def sarimax_train_model(self,X_train,y_train,X_test,y_test,order,seasonal_order,forecast_step): ## we will do both train and evaluation here so we dont have to create another file for it
+
+        ## store model parameters for the artifact
+        model_parmeters={'order':order,'seasonal_order':seasonal_order,'forecast_step':forecast_step}
+        
 
         mod = SARIMAX(
             endog=y_train,
@@ -135,14 +143,14 @@ class ModelTrainer:
 
         ## Model Trainer Artifact
         model_trainer_artifact=ModelTrainerArtifact(
-            trained_model_file_path=self.model_trainer_config.trained_model_file_path,test_metric_artifact=performance_metric)
+            trained_model_file_path=self.model_trainer_config.trained_model_file_path,test_metric_artifact=performance_metric,
+            training_parameters=model_parmeters)
         logging.info(f"Model trainer artifact: {model_trainer_artifact}") 
 
         return model_trainer_artifact
 
     
-    def sarima_grid_search_model_trainer(self, train_data, test_data,
-                                            grid={'p':1,'i':1,'q':1,'P':1,'D':1,'Q':1},
+    def sarima_grid_search_model_trainer(self, train_data, test_data,grid={'p':1,'i':1,'q':1,'P':1,'D':1,'Q':1},
                                             season=12):
 
         y_train = train_data[self.target_name].dropna()
