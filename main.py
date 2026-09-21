@@ -30,10 +30,11 @@ from NgxStockPrediction.components.data_ingestion import DataIngestion
 from NgxStockPrediction.components.data_validation import DataValidation
 from NgxStockPrediction.components.data_transformation import DataTransformation
 from NgxStockPrediction.components.model_trainer import ModelTrainer
+from NgxStockPrediction.components.model_performance_tracker import ModelPerformanceTracker
 
 from NgxStockPrediction.exception.exception import NGXStockPredictionException
 from NgxStockPrediction.logging.logger import logging
-from NgxStockPrediction.entity.config_entity import TrainingPipelineConfig,DataIngestionConfig,DataValidationConfig,DataTransformationConfig,ModelTrainerConfig
+from NgxStockPrediction.entity.config_entity import TrainingPipelineConfig,DataIngestionConfig,DataValidationConfig,DataTransformationConfig,ModelTrainerConfig,ModelPerformanceTrackerConfig
 # from NgxStockPrediction.entity.artifact_entity import DataIngestionArtifact
 import sys, os
 
@@ -79,6 +80,14 @@ if __name__ == "__main__":
             forecast_step=0 ## We cant forecast further like we did in sarima. Because we will need to provide the explanatory variables (exog) for that forcast.
         )
         print(modeltrainerartifact)
+
+        ## activate performance tracker
+        modelperformancetrackerconfig=ModelPerformanceTrackerConfig(training_pipeline_config=trainingpipelineconfig,FILE_NAME=filename,TARGET_NAME=targetname)
+        modelperformancetracker=ModelPerformanceTracker(model_performance_tracker_config=modelperformancetrackerconfig,model_trainer_artifact=modeltrainerartifact,data_validation_artifact=datavalidationartifact)
+        logging.info("initiate model performance tracker")
+        performance_update=modelperformancetracker.initiate_performance_tracker()
+        print('performance_update: ',performance_update)
+
     except Exception as e:
         raise NGXStockPredictionException(e,sys)
 

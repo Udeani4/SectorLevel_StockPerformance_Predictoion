@@ -98,64 +98,80 @@ class ModelPerformanceTracker:
 
     def update_performance_tracker(self, movement_cm, next_fcst):
         """Appends a new row to the performance tracker and flags metric degradation."""
+        try:
+            tracker_path = self.model_performance_tracker_config.model_performance_tracker_path
+            performance_data_path = self.model_performance_tracker_config.model_performance_data_path
 
-        tracker_path = self.model_performance_tracker_config.model_performance_tracker_path
-        performance_data_path = self.model_performance_tracker_config.model_performance_data_path
-
-        if os.path.exists(performance_data_path):
-            performance_df=self.read_data(performance_data_path)
-        else:
-            return "Performance Dataframe does not exist"
-    
+            if os.path.exists(performance_data_path):
+                performance_df=self.read_data(performance_data_path)
+            else:
+                return "Performance Dataframe does not exist"
         
-        tn, fp, fn, tp = movement_cm.ravel()
-        movement_accuracy = (tp + tn) / (tp + tn + fp + fn)
+            
+            tn, fp, fn, tp = movement_cm.ravel()
+            movement_accuracy = (tp + tn) / (tp + tn + fp + fn)
 
-        r2 = r2_score(performance_df['true'], performance_df['predicted'])
-        rmse = np.sqrt(mean_squared_error(performance_df['true'], performance_df['predicted']))
+            r2 = r2_score(performance_df['true'], performance_df['predicted'])
+            rmse = np.sqrt(mean_squared_error(performance_df['true'], performance_df['predicted']))
 
-        year = int(last_row['year'])
-        month = int(last_row['month'])
+            year = int(last_row['year'])
+            month = int(last_row['month'])
 
-        if month == 12:
-            next_year, next_month = year + 1, 1
-        else:
-            next_year, next_month = year, month + 1
+            if month == 12:
+                next_year, next_month = year + 1, 1
+            else:
+                next_year, next_month = year, month + 1
 
-        last_row = performance_df.iloc[-1]
+            last_row = performance_df.iloc[-1]
 
-        new_row = {
-            'year': next_year,
-            'month_predicted': next_month,
-            f"next_month_{self.target_name}_prediction": next_fcst,
-            'r2_score': r2,
-            'rmse': rmse,
-            'tp': tp,
-            'tn': tn,
-            'fp': fp,
-            'fn': fn,
-            'movement_accuracy': movement_accuracy
-        }
-
-        if os.path.exists(tracker_path):
-            tracker_df = self.read_data(tracker_path)
-            previous_row = tracker_df.iloc[-1] if len(tracker_df) > 0 else None
-        else:
-            tracker_df = pd.DataFrame(columns=list(new_row.keys()))
-            previous_row = None
-
-        tracker_df = pd.concat([tracker_df, pd.DataFrame([new_row])], ignore_index=True)
-        tracker_df.to_csv(tracker_path, index=False)
-
-        if previous_row is not None:
-            result = {
-                'r2_score': r2 < previous_row['r2_score'],
-                'rmse': rmse > previous_row['rmse']
+            new_row = {
+                'year': next_year,
+                'month_predicted': next_month,
+                f"next_month_{self.target_name}_prediction": next_fcst,
+                'r2_score': r2,
+                'rmse': rmse,
+                'tp': tp,
+                'tn': tn,
+                'fp': fp,
+                'fn': fn,
+                'movement_accuracy': movement_accuracy
             }
-        else:
-            result = {'r2_score': False, 'rmse': False}
 
-        return result
+            if os.path.exists(tracker_path):
+                tracker_df = self.read_data(tracker_path)
+                previous_row = tracker_df.iloc[-1] if len(tracker_df) > 0 else None
+            else:
+                tracker_df = pd.DataFrame(columns=list(new_row.keys()))
+                previous_row = None
+
+            tracker_df = pd.concat([tracker_df, pd.DataFrame([new_row])], ignore_index=True)
+            tracker_df.to_csv(tracker_path, index=False)
+
+            if previous_row is not None:
+                result = {
+                    'r2_score': r2 < previous_row['r2_score'],
+                    'rmse': rmse > previous_row['rmse']
+                }
+            else:
+                result = {'r2_score': False, 'rmse': False}
+
+            return result
+        
+        except Exception as e:
+            raise NGXStockPredictionException(e,sys)
+
+    def initiate_performance_tracker(self):
+        """
+        Creates and updates the performance 
+        """
+        try:
+            performance_dict=self.create_performance_data()
+            performance_update=self.update_performance_tracker(movement_cm=performance_dict['confusion_matrix'],next_fcst=performance_dict[f'next_month_{self.target_name}'])
+
+            print('performance update:', performance_update)
+            return performance_update
+        except Exception as e:
+            raise NGXStockPredictionException(e,sys)
         
 
 

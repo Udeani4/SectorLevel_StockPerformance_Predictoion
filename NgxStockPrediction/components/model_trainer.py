@@ -57,199 +57,209 @@ class ModelTrainer:
 
     
     def sarima_train_model(self,train_data,test_data,order,seasonal_order,forecast_step): ## we will do both train and evaluation here so we dont have to create another file for it
+        try:
+            ## store model parameters for the artifact
+            model_parmeters={'order':order,'seasonal_order':seasonal_order,'forecast_step':forecast_step}
 
-        ## store model parameters for the artifact
-        model_parmeters={'order':order,'seasonal_order':seasonal_order,'forecast_step':forecast_step}
+            y_train=train_data[self.target_name].dropna()
+            y_test=test_data[self.target_name].dropna()
 
-        y_train=train_data[self.target_name].dropna()
-        y_test=test_data[self.target_name].dropna()
+            mod = SARIMAX(
+            y_train,
+            order=order, 
+            seasonal_order=seasonal_order,
+            )
 
-        mod = SARIMAX(
-        y_train,
-        order=order, 
-        seasonal_order=seasonal_order,
-        )
+            model = mod.fit(disp=False)
+            fcst=model.forecast(steps=10+forecast_step)
 
-        model = mod.fit(disp=False)
-        fcst=model.forecast(steps=10+forecast_step)
+            y_pred = fcst.iloc[:10] ## We just need the first 10 predictions to evaluate the model because the test size is 10
+            future  = fcst.iloc[-forecast_step:]
 
-        y_pred = fcst.iloc[:10] ## We just need the first 10 predictions to evaluate the model because the test size is 10
-        future  = fcst.iloc[-forecast_step:]
-
-        print(f'complete forecast {self.target_name}: ', fcst)
-        print(f'The next two months {self.target_name}: ',future)
+            print(f'complete forecast {self.target_name}: ', fcst)
+            print(f'The next two months {self.target_name}: ',future)
 
 
-        performance_metric = get_performance_score(
-            y_true=np.asarray(y_test), y_pred=np.asarray(y_pred)
-        )
-        ## track the experiments with flow
-        # self.track_mlflow(
-        #     f"{self.target_name}",performance_metric
-        # ) ## a folder will be created called mlruns. You will be able to see the number of experiments (folder) that will contain the outputs of the entire run flow. inside the mlruns->0 (folder) contains the experiments. NOTE: It is advisable not to push mlruns folder to github unless it is very necessary for prodution. 
-        
-        ## But dagshub will now collect all the experiment files instead. since we have initialized it
+            performance_metric = get_performance_score(
+                y_true=np.asarray(y_test), y_pred=np.asarray(y_pred)
+            )
+            ## track the experiments with flow
+            # self.track_mlflow(
+            #     f"{self.target_name}",performance_metric
+            # ) ## a folder will be created called mlruns. You will be able to see the number of experiments (folder) that will contain the outputs of the entire run flow. inside the mlruns->0 (folder) contains the experiments. NOTE: It is advisable not to push mlruns folder to github unless it is very necessary for prodution. 
+            
+            ## But dagshub will now collect all the experiment files instead. since we have initialized it
 
-        model_dir_path=os.path.dirname(self.model_trainer_config.trained_model_file_path)
-        os.makedirs(model_dir_path,exist_ok=True)
+            model_dir_path=os.path.dirname(self.model_trainer_config.trained_model_file_path)
+            os.makedirs(model_dir_path,exist_ok=True)
 
-        ## save the trained model object
-        save_object(self.model_trainer_config.trained_model_file_path,obj=model) ## Krish did 'obj=NetworkModel'. check back incase you are wrong
+            ## save the trained model object
+            save_object(self.model_trainer_config.trained_model_file_path,obj=model) ## Krish did 'obj=NetworkModel'. check back incase you are wrong
 
-        ## Model Trainer Artifact
-        model_trainer_artifact=ModelTrainerArtifact(
-            trained_model_file_path=self.model_trainer_config.trained_model_file_path,test_metric_artifact=performance_metric,
-            training_parameters=model_parmeters)
-        logging.info(f"Model trainer artifact: {model_trainer_artifact}") 
+            ## Model Trainer Artifact
+            model_trainer_artifact=ModelTrainerArtifact(
+                trained_model_file_path=self.model_trainer_config.trained_model_file_path,test_metric_artifact=performance_metric,
+                training_parameters=model_parmeters)
+            logging.info(f"Model trainer artifact: {model_trainer_artifact}") 
 
-        return model_trainer_artifact
+            return model_trainer_artifact
+        except Exception as e:
+            raise NGXStockPredictionException(e,sys)
 
     def sarimax_train_model(self,X_train,y_train,X_test,y_test,order,seasonal_order,forecast_step): ## we will do both train and evaluation here so we dont have to create another file for it
+        try:
+            ## store model parameters for the artifact
+            model_parmeters={'order':order,'seasonal_order':seasonal_order,'forecast_step':forecast_step}
+            
 
-        ## store model parameters for the artifact
-        model_parmeters={'order':order,'seasonal_order':seasonal_order,'forecast_step':forecast_step}
+            mod = SARIMAX(
+                endog=y_train,
+                exog=X_train,
+                order=order,
+                seasonal_order=seasonal_order,
+            )
+
+            model = mod.fit(disp=False)
+            fcst = model.forecast(steps=10+forecast_step, exog = X_test)
+
+            y_pred = fcst[:10] ## We just need the first 10 predictions to evaluate the model because the test size is 10
+
+            print(f'complete forecast {self.target_name}: ', fcst)
+
+            performance_metric = get_performance_score(
+                y_true=np.asarray(y_test), y_pred=np.asarray(y_pred)
+            )
+
+            ## track the experiments with flow
+            # self.track_mlflow(
+            #     model,performance_metric
+            # ) ## a folder will be created called mlruns. You will be able to see the number of experiments (folder) that will contain the outputs of the entire run flow. inside the mlruns->0 (folder) contains the experiments. NOTE: It is advisable not to push mlruns folder to github unless it is very necessary for prodution. 
+            
+            ## But dagshub will now collect all the experiment files instead. since we have initialized it
+
+            model_dir_path=os.path.dirname(self.model_trainer_config.trained_model_file_path)
+            os.makedirs(model_dir_path,exist_ok=True)
+
+            ## save the trained model object
+            save_object(self.model_trainer_config.trained_model_file_path,obj=model) ## Krish did 'obj=NetworkModel'. check back incase you are wrong
+
+            ## Model Trainer Artifact
+            model_trainer_artifact=ModelTrainerArtifact(
+                trained_model_file_path=self.model_trainer_config.trained_model_file_path,test_metric_artifact=performance_metric,
+                training_parameters=model_parmeters)
+            logging.info(f"Model trainer artifact: {model_trainer_artifact}") 
+
+            return model_trainer_artifact
         
-
-        mod = SARIMAX(
-            endog=y_train,
-            exog=X_train,
-            order=order,
-            seasonal_order=seasonal_order,
-        )
-
-        model = mod.fit(disp=False)
-        fcst = model.forecast(steps=10+forecast_step, exog = X_test)
-
-        y_pred = fcst[:10] ## We just need the first 10 predictions to evaluate the model because the test size is 10
-
-        print(f'complete forecast {self.target_name}: ', fcst)
-
-        performance_metric = get_performance_score(
-            y_true=np.asarray(y_test), y_pred=np.asarray(y_pred)
-        )
-
-        ## track the experiments with flow
-        # self.track_mlflow(
-        #     model,performance_metric
-        # ) ## a folder will be created called mlruns. You will be able to see the number of experiments (folder) that will contain the outputs of the entire run flow. inside the mlruns->0 (folder) contains the experiments. NOTE: It is advisable not to push mlruns folder to github unless it is very necessary for prodution. 
-        
-        ## But dagshub will now collect all the experiment files instead. since we have initialized it
-
-        model_dir_path=os.path.dirname(self.model_trainer_config.trained_model_file_path)
-        os.makedirs(model_dir_path,exist_ok=True)
-
-        ## save the trained model object
-        save_object(self.model_trainer_config.trained_model_file_path,obj=model) ## Krish did 'obj=NetworkModel'. check back incase you are wrong
-
-        ## Model Trainer Artifact
-        model_trainer_artifact=ModelTrainerArtifact(
-            trained_model_file_path=self.model_trainer_config.trained_model_file_path,test_metric_artifact=performance_metric,
-            training_parameters=model_parmeters)
-        logging.info(f"Model trainer artifact: {model_trainer_artifact}") 
-
-        return model_trainer_artifact
+        except Exception as e:
+            raise NGXStockPredictionException(e,sys)
 
     
     def sarima_grid_search_model_trainer(self, train_data, test_data,grid={'p':1,'i':1,'q':1,'P':1,'D':1,'Q':1},
                                             season=12):
+        try:
+            y_train = train_data[self.target_name].dropna()
+            y_test = test_data[self.target_name].dropna()
 
-        y_train = train_data[self.target_name].dropna()
-        y_test = test_data[self.target_name].dropna()
+            scores = []
+            for p in range(grid['p']):
+                for i in range(grid['i']):
+                    for q in range(grid['q']):
+                        for P in range(grid['P']):
+                            for D in range(grid['D']):
+                                for Q in range(grid['Q']):
+                                    try:
+                                        mod = SARIMAX(y_train, order=(p, i, q),
+                                                    seasonal_order=(P, D, Q, season))
+                                        res = mod.fit(disp=False)
+                                        fcst = res.forecast(steps=10)
 
-        scores = []
-        for p in range(grid['p']):
-            for i in range(grid['i']):
-                for q in range(grid['q']):
-                    for P in range(grid['P']):
-                        for D in range(grid['D']):
-                            for Q in range(grid['Q']):
-                                try:
-                                    mod = SARIMAX(y_train, order=(p, i, q),
-                                                seasonal_order=(P, D, Q, season))
-                                    res = mod.fit(disp=False)
-                                    fcst = res.forecast(steps=10)
+                                        performance_metric = get_performance_score(
+                                                    y_true=np.asarray(y_test), y_pred=np.asarray(fcst)
+                                                )
+                                        
+                                        score = [p, i, q, P, D, Q,
+                                                performance_metric['accuracy'],
+                                                performance_metric['rmse']]
+                                        
+                                        print(score)
+                                        scores.append(score)
+                                        del mod
+                                        del res
+                                    except Exception as e:
+                                        print(f'errored: (p={p},i={i},q={q},P={P},D={D},Q={Q}) -> {e}')
 
-                                    performance_metric = get_performance_score(
-                                                y_true=np.asarray(y_test), y_pred=np.asarray(fcst)
-                                            )
-                                    
-                                    score = [p, i, q, P, D, Q,
-                                            performance_metric['accuracy'],
-                                            performance_metric['rmse']]
-                                    
-                                    print(score)
-                                    scores.append(score)
-                                    del mod
-                                    del res
-                                except Exception as e:
-                                    print(f'errored: (p={p},i={i},q={q},P={P},D={D},Q={Q}) -> {e}')
+            if not scores:
+                raise ValueError("No SARIMAX combination succeeded — check for a systematic error above.")
 
+
+            result_df = pd.DataFrame(scores, columns=['p', 'i', 'q', 'P', 'D', 'Q', 'score', 'rmse'])
+            result_df = result_df.sort_values('score', ascending=False)
+
+            best_row = result_df.iloc[0]
+            best_param = {
+                'order': (int(best_row['p']), int(best_row['i']), int(best_row['q'])),
+                'seasonal_order': (int(best_row['P']), int(best_row['D']), int(best_row['Q']), season),
+                'r2_score': float(best_row['score']),
+                'rmse': float(best_row['rmse']),
+            }
+            print('best_param',best_param)
+
+            return best_param
         
-        if not scores:
-            raise ValueError("No SARIMAX combination succeeded — check for a systematic error above.")
-
-
-        result_df = pd.DataFrame(scores, columns=['p', 'i', 'q', 'P', 'D', 'Q', 'score', 'rmse'])
-        result_df = result_df.sort_values('score', ascending=False)
-
-        best_row = result_df.iloc[0]
-        best_param = {
-            'order': (int(best_row['p']), int(best_row['i']), int(best_row['q'])),
-            'seasonal_order': (int(best_row['P']), int(best_row['D']), int(best_row['Q']), season),
-            'r2_score': float(best_row['score']),
-            'rmse': float(best_row['rmse']),
-        }
-        print('best_param',best_param)
-
-        return best_param
+        except Exception as e:
+            raise NGXStockPredictionException(e,sys)
 
     def sarimax_grid_search_model_trainer(self, X_train,y_train,X_test,y_test,grid={'p':1,'i':1,'q':1,'P':1,'D':1,'Q':1},season=12):
-        scores = []
-        for p in range(grid['p']):
-            for i in range(grid['i']):
-                for q in range(grid['q']):
-                    for P in range(grid['P']):
-                        for D in range(grid['D']):
-                            for Q in range(grid['Q']):
-                                try:
-                                    mod = SARIMAX(endog=y_train,
-                                                exog=X_train, 
-                                                order=(p, i, q),
-                                                seasonal_order=(P, D, Q, season))
-                                    res = mod.fit(disp=False)
-                                    fcst = res.forecast(steps=10, exog=X_test)
-                                    performance_metric = get_performance_score(
-                                                y_true=np.asarray(y_test), y_pred=np.asarray(fcst)
-                                            )
-                                    
-                                    score = [p, i, q, P, D, Q,
-                                            performance_metric['accuracy'],
-                                            performance_metric['rmse']]
-                                    
-                                    print(score)
-                                    scores.append(score)
-                                    del mod
-                                    del res
-                                except Exception as e:
-                                    print(f'errored: (p={p},i={i},q={q},P={P},D={D},Q={Q}) -> {e}')
+        try:
+            scores = []
+            for p in range(grid['p']):
+                for i in range(grid['i']):
+                    for q in range(grid['q']):
+                        for P in range(grid['P']):
+                            for D in range(grid['D']):
+                                for Q in range(grid['Q']):
+                                    try:
+                                        mod = SARIMAX(endog=y_train,
+                                                    exog=X_train, 
+                                                    order=(p, i, q),
+                                                    seasonal_order=(P, D, Q, season))
+                                        res = mod.fit(disp=False)
+                                        fcst = res.forecast(steps=10, exog=X_test)
+                                        performance_metric = get_performance_score(
+                                                    y_true=np.asarray(y_test), y_pred=np.asarray(fcst)
+                                                )
+                                        
+                                        score = [p, i, q, P, D, Q,
+                                                performance_metric['accuracy'],
+                                                performance_metric['rmse']]
+                                        
+                                        print(score)
+                                        scores.append(score)
+                                        del mod
+                                        del res
+                                    except Exception as e:
+                                        print(f'errored: (p={p},i={i},q={q},P={P},D={D},Q={Q}) -> {e}')
 
-        if not scores:
-            raise ValueError("No SARIMAX combination succeeded — check for a systematic error above.")
+            if not scores:
+                raise ValueError("No SARIMAX combination succeeded — check for a systematic error above.")
+            
+            result_df = pd.DataFrame(scores, columns=['p', 'i', 'q', 'P', 'D', 'Q', 'score', 'rmse'])
+            result_df = result_df.sort_values('score', ascending=False)
+
+            best_row = result_df.iloc[0]
+            best_param = {
+                'order': (int(best_row['p']), int(best_row['i']), int(best_row['q'])),
+                'seasonal_order': (int(best_row['P']), int(best_row['D']), int(best_row['Q']), season),
+                'r2_score': float(best_row['score']),
+                'rmse': float(best_row['rmse']),
+            }
+            print('best_param',best_param)
+
+            return best_param
         
-        result_df = pd.DataFrame(scores, columns=['p', 'i', 'q', 'P', 'D', 'Q', 'score', 'rmse'])
-        result_df = result_df.sort_values('score', ascending=False)
-
-        best_row = result_df.iloc[0]
-        best_param = {
-            'order': (int(best_row['p']), int(best_row['i']), int(best_row['q'])),
-            'seasonal_order': (int(best_row['P']), int(best_row['D']), int(best_row['Q']), season),
-            'r2_score': float(best_row['score']),
-            'rmse': float(best_row['rmse']),
-        }
-        print('best_param',best_param)
-
-        return best_param
-    
+        except Exception as e:
+                    raise NGXStockPredictionException(e,sys)
 
         
     def initiate_model_trainer(self, model_type:str,order=(1,1,1),seasonal_order=(1,1,1,12), forecast_step=1)->ModelTrainerArtifact:
