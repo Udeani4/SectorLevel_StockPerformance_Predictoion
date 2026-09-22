@@ -144,31 +144,33 @@ class ModelPerformanceTracker:
             'fn': fn,
             'movement_accuracy': movement_accuracy,
             'order': model_parameters['order'],
-            'seasonal_order':model_parameters['seasonal_order']
+            'seasonal_order': model_parameters['seasonal_order']
         }
 
-        # numeric_cols = ['r2_score', 'rmse', 'tp', 'tn', 'fp', 'fn', 'movement_accuracy',
-        #          f'next_month_{self.target_name}_prediction']
+        numeric_cols = ['r2_score', 'rmse', 'tp', 'tn', 'fp', 'fn', 'movement_accuracy',
+                        f'next_month_{self.target_name}_prediction']
 
         if os.path.exists(tracker_path):
             tracker_df = pd.read_csv(tracker_path)
-            # for c in numeric_cols:
-            #     if c in tracker_df.columns:
-            #         tracker_df[c] = pd.to_numeric(tracker_df[c], errors='coerce')
+            for c in numeric_cols:
+                if c in tracker_df.columns:
+                    tracker_df[c] = pd.to_numeric(tracker_df[c], errors='coerce')
         else:
             tracker_df = pd.DataFrame(columns=list(new_row.keys()))
 
-
         # check if an entry for this year/month already exists
-        existing_mask = (tracker_df['year'] == next_year) & (tracker_df['month_predicted'] == next_month)
-
+        existing_mask = (
+            (tracker_df['year'] == next_year) &
+            (tracker_df['month_predicted'] == next_month) &
+            (tracker_df['order'].astype(str) == str(new_row['order'])) &
+            (tracker_df['seasonal_order'].astype(str) == str(new_row['seasonal_order']))
+        )
+        
         if existing_mask.any():
             existing_row = tracker_df.loc[existing_mask].iloc[0]
 
             # compare all fields except year/month_predicted (the key itself)
-                
             compare_cols = [c for c in new_row.keys() if c not in ('year', 'month_predicted')]
-
             is_identical = all(
                 self._values_close(existing_row[c], new_row[c]) for c in compare_cols
             )
@@ -179,14 +181,25 @@ class ModelPerformanceTracker:
                     if existing_mask.idxmax() > 0 else None
             else:
                 # data changed — replace the existing row in place
-                tracker_df.loc[existing_mask, list(new_row.keys())] = list(new_row.values())
+                row_idx = tracker_df.loc[existing_mask].index[0]
+
+                scalar_cols = [c for c in new_row.keys() if c not in ('order', 'seasonal_order')]
+                tracker_df.loc[row_idx, scalar_cols] = [new_row[c] for c in scalar_cols]
+                tracker_df.loc[row_idx, 'order'] = str(new_row['order'])
+                tracker_df.loc[row_idx, 'seasonal_order'] = str(new_row['seasonal_order'])
+
                 tracker_df.to_csv(tracker_path, index=False)
                 prev_idx = existing_mask.idxmax() - 1
                 previous_row = tracker_df.loc[prev_idx] if prev_idx >= 0 else None
         else:
             # brand new entry — append
             previous_row = tracker_df.iloc[-1] if len(tracker_df) > 0 else None
-            tracker_df = pd.concat([tracker_df, pd.DataFrame([new_row])], ignore_index=True)
+
+            new_row_for_storage = dict(new_row)
+            new_row_for_storage['order'] = str(new_row['order'])
+            new_row_for_storage['seasonal_order'] = str(new_row['seasonal_order'])
+
+            tracker_df = pd.concat([tracker_df, pd.DataFrame([new_row_for_storage])], ignore_index=True)
             tracker_df.to_csv(tracker_path, index=False)
 
         if previous_row is not None:

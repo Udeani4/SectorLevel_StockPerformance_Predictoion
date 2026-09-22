@@ -41,8 +41,9 @@ import sys, os
 
 if __name__ == "__main__":
     try:
-        filename="ZENITHBANK"
+        filename="CHAMS"
         targetname="close_price"
+        targetname2="returns"
 
         trainingpipelineconfig=TrainingPipelineConfig()
 
@@ -67,17 +68,12 @@ if __name__ == "__main__":
         modeltrainerconfig=ModelTrainerConfig(training_pipeline_config=trainingpipelineconfig,FILE_NAME=filename,TARGET_NAME=targetname)
         modeltrainer=ModelTrainer(model_trainer_config=modeltrainerconfig,data_validation_artifact=datavalidationartifact,data_transformation_artifact=datatransformationartifact)
         logging.info("Initiate Model Trainer")
-        # modeltrainerartifact=modeltrainer.initiate_model_trainer(
-        #     model_type="sarima",
-        #     order=(0,2,0), 
-        #     seasonal_order=(2,1,0,12),
-        #     forecast_step=2 ## This will predict the next two future values
-        # )
+
         modeltrainerartifact=modeltrainer.initiate_model_trainer(
             model_type="sarima",
-            order=(0,2,0), 
-            seasonal_order=(2,1,0,12),
-            forecast_step=1 ## We cant forecast further like we did in sarima. Because we will need to provide the explanatory variables (exog) for that forcast.
+            order=(2,2,2), 
+            seasonal_order=(1,2,0,12),
+            forecast_step=1 ## We cant forecast further FOR SARIMAX like we do in sarima. Because we will need to provide the explanatory variables (exog) for that forcast.
         )
         print(modeltrainerartifact)
 

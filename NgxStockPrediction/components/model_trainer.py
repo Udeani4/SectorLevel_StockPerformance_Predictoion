@@ -35,6 +35,7 @@ class ModelTrainer:
             self.data_transformation_artifact=data_transformation_artifact ## We will use this for SARIMAX
             self.data_validation_artifact=data_validation_artifact ## We will use this for SARIMA
             self.target_name=model_trainer_config.target_name
+            self.symbol=model_trainer_config.file_name
 
         except Exception as e:
             raise NGXStockPredictionException(e,sys)
@@ -56,9 +57,11 @@ class ModelTrainer:
 
             mlflow.log_metric('r2_score',r2_score) ## logging in the local environment but because we are now connected to dagshub it will all be pushed to the remote repository instead
             mlflow.log_metric('rmse',rmse) ## .log_metric is for float data
+            mlflow.log_param('model_type',model_type)
+            mlflow.log_param('target_feature',self.target_name)
             mlflow.log_param('order',order) ## .log_param is for others. in this case we are logging a tuple
             mlflow.log_param('seasonal_order',seasonal_order)
-            mlflow.statsmodels.log_model(best_model,'model')
+            mlflow.statsmodels.log_model(best_model,f'{self.symbol}_model')
 
     
     def sarima_train_model(self,train_data,test_data,order,seasonal_order,forecast_step): ## we will do both train and evaluation here so we dont have to create another file for it
