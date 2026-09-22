@@ -1,0 +1,20 @@
+artifact_path: file:///C:/Users/pc/Downloads/Python_NGX_Project/mlruns/0/models/m-800268224d324177a8e5b3ed51c5a332/artifacts
+flavors:
+  python_function:
+    data: model.statsmodels
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.statsmodels
+    python_version: 3.12.5
+  statsmodels:
+    code: null
+    data: model.statsmodels
+    statsmodels_version: 0.14.6
+mlflow_version: 3.16.0
+model_id: m-800268224d324177a8e5b3ed51c5a332
+model_size_bytes: 23632698
+model_uuid: m-800268224d324177a8e5b3ed51c5a332
+prompts: null
+run_id: e26a234c08184b3fa25995b18b224d20
+utc_time_created: '2026-09-22 09:26:20.040967'

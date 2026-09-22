@@ -44,16 +44,19 @@ class ModelTrainer:
             return pd.read_csv(file_path)
         except Exception as e:
             raise NGXStockPredictionException(e,sys)  
-    # def track_mlflow(self,best_model,classification_metric):
-    #     with mlflow.start_run():
-    #         f1_score=classification_metric.f1_score
-    #         precision_score=classification_metric.precision_score
-    #         recall_score=classification_metric.recall_score
+    def track_mlflow(self,model_type:str,best_model,performance_metric,model_parameters):
+        with mlflow.start_run():
+            model_type=model_type
+            r2_score=performance_metric.r2_score
+            rmse=performance_metric.rmse
+            order=model_parameters['order']
+            seasonal_order=model_parameters['seasonal_order']
 
-    #         mlflow.log_metric('f1_score',f1_score) ## logging in the local environment but because we are now connected to dagshub it will all be pushed to the remote repository instead
-    #         mlflow.log_metric('precision_score',precision_score)
-    #         mlflow.log_metric('recall_score',recall_score)
-    #         mlflow.sklearn.log_model(best_model,'model')
+            mlflow.log_metric('r2_score',r2_score) ## logging in the local environment but because we are now connected to dagshub it will all be pushed to the remote repository instead
+            mlflow.log_metric('rmse',rmse) ## .log_metric is for float data
+            mlflow.log_param('order',order) ## .log_param is for others. in this case we are logging a tuple
+            mlflow.log_param('seasonal_order',seasonal_order)
+            mlflow.statsmodels.log_model(best_model,'model')
 
     
     def sarima_train_model(self,train_data,test_data,order,seasonal_order,forecast_step): ## we will do both train and evaluation here so we dont have to create another file for it
@@ -83,10 +86,13 @@ class ModelTrainer:
             performance_metric = get_performance_score(
                 y_true=np.asarray(y_test), y_pred=np.asarray(y_pred)
             )
-            ## track the experiments with flow
-            # self.track_mlflow(
-            #     f"{self.target_name}",performance_metric
-            # ) ## a folder will be created called mlruns. You will be able to see the number of experiments (folder) that will contain the outputs of the entire run flow. inside the mlruns->0 (folder) contains the experiments. NOTE: It is advisable not to push mlruns folder to github unless it is very necessary for prodution. 
+            # track the experiments with flow
+            self.track_mlflow(
+                model_type='sarima',
+                best_model=model,
+                performance_metric=performance_metric,
+                model_parameters=model_parmeters
+            ) ## a folder will be created called mlruns. You will be able to see the number of experiments (folder) that will contain the outputs of the entire run flow. inside the mlruns->0 (folder) contains the experiments. NOTE: It is advisable not to push mlruns folder to github unless it is very necessary for prodution. 
             
             ## But dagshub will now collect all the experiment files instead. since we have initialized it
 
@@ -130,10 +136,13 @@ class ModelTrainer:
                 y_true=np.asarray(y_test), y_pred=np.asarray(y_pred)
             )
 
-            ## track the experiments with flow
-            # self.track_mlflow(
-            #     model,performance_metric
-            # ) ## a folder will be created called mlruns. You will be able to see the number of experiments (folder) that will contain the outputs of the entire run flow. inside the mlruns->0 (folder) contains the experiments. NOTE: It is advisable not to push mlruns folder to github unless it is very necessary for prodution. 
+            # track the experiments with flow
+            self.track_mlflow(
+                model_type='sarimax',
+                best_model=model,
+                performance_metric=performance_metric,
+                model_parameters=model_parmeters
+            ) ## a folder will be created called mlruns. You will be able to see the number of experiments (folder) that will contain the outputs of the entire run flow. inside the mlruns->0 (folder) contains the experiments. NOTE: It is advisable not to push mlruns folder to github unless it is very necessary for prodution. 
             
             ## But dagshub will now collect all the experiment files instead. since we have initialized it
 
