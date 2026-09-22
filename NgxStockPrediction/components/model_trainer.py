@@ -25,7 +25,8 @@ import json
 import mlflow ## For tracking and managing your machine learning project
 
 import dagshub
-# dagshub.init(repo_owner='udeaniizu04', repo_name='NgxStockPrediction', mlflow=True) ## This is the template in dagshub(under experiment), after i have connected to my github repository. This part was copied only because the mlfow object is already here in ModelTrainer.track_mlflow
+
+dagshub.init(repo_owner='udeaniizu04', repo_name='SectorLevel_StockPerformance_Predictoion', mlflow=True) ## This is the template in dagshub(under experiment), after i have connected to my github repository. This part was copied only because the mlfow object is already here in ModelTrainer.track_mlflow
 
 class ModelTrainer:
     def __init__(self,model_trainer_config:ModelTrainerConfig,data_validation_artifact: DataValidationArtifact,data_transformation_artifact:DataTransformationArtifact):
@@ -43,7 +44,8 @@ class ModelTrainer:
         try:
             return pd.read_csv(file_path)
         except Exception as e:
-            raise NGXStockPredictionException(e,sys)  
+            raise NGXStockPredictionException(e,sys) 
+         
     def track_mlflow(self,model_type:str,best_model,performance_metric,model_parameters):
         with mlflow.start_run():
             model_type=model_type

@@ -39,7 +39,14 @@ class ModelPerformanceTracker:
         try:
             return pd.read_csv(file_path)
         except Exception as e:
-            raise NGXStockPredictionException(e,sys) 
+            raise NGXStockPredictionException(e,sys)
+
+    @staticmethod
+    def _values_close(a, b):
+        try:
+            return np.isclose(float(a), float(b))
+        except (ValueError, TypeError):
+            return str(a) == str(b) ## since order and seasonal_order are tuples 
 
     def create_performance_data(self):
         try:
@@ -95,7 +102,7 @@ class ModelPerformanceTracker:
             os.makedirs(os.path.dirname(performance_data_path), exist_ok=True)
             performance_df.to_csv(performance_data_path)
 
-            return {'confusion_matrix': movement_cm, f'next_month_{self.target_name}': fcst[10]}
+            return {'confusion_matrix': movement_cm, f'next_month_{self.target_name}': float(fcst[10])}
         
         except Exception as e:
             raise NGXStockPredictionException(e,sys)
@@ -140,10 +147,17 @@ class ModelPerformanceTracker:
             'seasonal_order':model_parameters['seasonal_order']
         }
 
+        # numeric_cols = ['r2_score', 'rmse', 'tp', 'tn', 'fp', 'fn', 'movement_accuracy',
+        #          f'next_month_{self.target_name}_prediction']
+
         if os.path.exists(tracker_path):
             tracker_df = pd.read_csv(tracker_path)
+            # for c in numeric_cols:
+            #     if c in tracker_df.columns:
+            #         tracker_df[c] = pd.to_numeric(tracker_df[c], errors='coerce')
         else:
             tracker_df = pd.DataFrame(columns=list(new_row.keys()))
+
 
         # check if an entry for this year/month already exists
         existing_mask = (tracker_df['year'] == next_year) & (tracker_df['month_predicted'] == next_month)
@@ -152,9 +166,11 @@ class ModelPerformanceTracker:
             existing_row = tracker_df.loc[existing_mask].iloc[0]
 
             # compare all fields except year/month_predicted (the key itself)
+                
             compare_cols = [c for c in new_row.keys() if c not in ('year', 'month_predicted')]
+
             is_identical = all(
-                np.isclose(existing_row[c], new_row[c]) for c in compare_cols
+                self._values_close(existing_row[c], new_row[c]) for c in compare_cols
             )
 
             if is_identical:
