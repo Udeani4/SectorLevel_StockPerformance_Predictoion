@@ -32,13 +32,21 @@ from NgxStockPrediction.entity.artifact_entity import (
 )
 
 class TrainingPipeline:
-    def __init__(self):
+    def __init__(self, file_name:str, target_name:str, model_type:str,order=(1,1,1), 
+                seasonal_order=(1,1,1,12),
+                forecast_step=1):
         self.training_pipeline_config=TrainingPipelineConfig()
+        self.file_name=file_name
+        self.target_name=target_name
+        self.model_type=model_type
+        self.order=order
+        self.seasonal_order=seasonal_order
+        self.forecast_step=forecast_step
         # self.s3_sync=S3Sync()
     
     def start_data_ingestion(self):
         try:
-            self.data_ingestion_config=DataIngestionConfig(training_pipeline_config=self.training_pipeline_config)
+            self.data_ingestion_config=DataIngestionConfig(training_pipeline_config=self.training_pipeline_config, FILE_NAME=self.file_name)
 
             logging.info("start data ingestion")
             data_ingestion=DataIngestion(data_ingestion_config=self.data_ingestion_config)
@@ -53,12 +61,12 @@ class TrainingPipeline:
             self, data_ingestion_artifact:DataIngestionArtifact
         ):
         try:
-            data_validation_config=DataValidationConfig(training_pipeline_config=self.training_pipeline_config)
-            data_validation=DataValidation(data_ingestion_artifact=data_ingestion_artifact,data_valdation_config=data_validation_config)
+            data_validation_config=DataValidationConfig(training_pipeline_config=self.training_pipeline_config, FILE_NAME=self.file_name)
+            data_validation=DataValidation(data_ingestion_artifact=data_ingestion_artifact,data_validation_config=data_validation_config)
 
             logging.info("Initiate the data Validation")
             data_validation_artifact=data_validation.initiate_data_validation()
-            logging.info("Dta Validation complete")
+            logging.info("Data Validation complete")
 
             return data_validation_artifact
 
@@ -66,14 +74,14 @@ class TrainingPipeline:
             raise NGXStockPredictionException(e,sys)  
 
     def start_data_transformation(
-            self,data_validation_artfact:DataValidationArtifact
+            self,data_validation_artifact:DataValidationArtifact
         ):
         try:
-            data_transformation_config=DataTransformationConfig(training_pipeline_config=self.training_pipeline_config)
-            data_transformation=DataTransformation(data_transformation_config=data_transformation_config,data_validation_artifact=data_validation_artfact)
+            data_transformation_config=DataTransformationConfig(training_pipeline_config=self.training_pipeline_config, FILE_NAME=self.file_name)
+            data_transformation=DataTransformation(data_transformation_config=data_transformation_config,data_validation_artifact=data_validation_artifact)
 
             logging.info("Initiate data transformation")
-            data_transformation_artifact=data_transformation.initiate_data_transformation() 
+            data_transformation_artifact=data_transformation.initiate_data_transformation(TARGET_COLUMN=self.target_name) 
             logging.info("Data transformation complete")
 
             return data_transformation_artifact
@@ -81,19 +89,37 @@ class TrainingPipeline:
             raise NGXStockPredictionException(e,sys)
     
     def start_model_trainer(
-            self,data_transformation_artifact:DataTransformationArtifact
+            self,data_transformation_artifact:DataTransformationArtifact,data_validation_artifact:DataValidationArtifact,
         ):
         try:
-            self.model_trainer_config: ModelTrainerConfig = ModelTrainerConfig(training_pipeline_config=self.training_pipeline_config)
+            self.model_trainer_config: ModelTrainerConfig = ModelTrainerConfig(training_pipeline_config=self.training_pipeline_config, FILE_NAME=self.file_name,TARGET_NAME=self.target_name)
 
-            model_trainer=ModelTrainer(model_trainer_config=self.model_trainer_config,data_transformation_artifact=data_transformation_artifact)
+            model_trainer=ModelTrainer(model_trainer_config=self.model_trainer_config,data_validation_artifact=data_validation_artifact,data_transformation_artifact=data_transformation_artifact)
 
             logging.info("initiate Model trainer")
-            model_trainer_artifact=model_trainer.initiate_model_trainer()
+            model_trainer_artifact=model_trainer.initiate_model_trainer(
+                model_type=self.model_type,
+                order=self.order, 
+                seasonal_order=self.seasonal_order,
+                forecast_step=self.forecast_step
+            )
             logging.info("Model Training complete")
 
             return model_trainer_artifact
         
+        except Exception as e:
+            raise NGXStockPredictionException(e,sys)
+
+    def start_performance_tracker(self, model_trainer_artifact:ModelTrainerArtifact,data_validation_artifact:DataValidationArtifact):
+        try:
+            modelperformancetrackerconfig=ModelPerformanceTrackerConfig(training_pipeline_config=self.training_pipeline_config,FILE_NAME=self.file_name,TARGET_NAME=self.target_name)
+
+            modelperformancetracker=ModelPerformanceTracker(model_performance_tracker_config=modelperformancetrackerconfig,model_trainer_artifact=model_trainer_artifact,data_validation_artifact=data_validation_artifact)
+
+            logging.info("initiate model performance tracker")
+            performance_metric_artifact=modelperformancetracker.initiate_performance_tracker()
+
+            return performance_metric_artifact
         except Exception as e:
             raise NGXStockPredictionException(e,sys)
 
@@ -123,15 +149,25 @@ class TrainingPipeline:
         try:
             logging.info("Initiating Machine learning pipeline")
             data_ingestion_artifact=self.start_data_ingestion()
-            data_validaton_artifact=self.start_data_validation(data_ingestion_artifact=data_ingestion_artifact)
-            data_transformtion_artifact=self.start_data_transformation(data_validation_artfact=data_validaton_artifact)
-            model_trainer_artifact=self.start_model_trainer(data_transformation_artifact=data_transformtion_artifact)
+            data_validation_artifact=self.start_data_validation(data_ingestion_artifact=data_ingestion_artifact)
+
+            data_transformation_artifact=self.start_data_transformation(data_validation_artifact=data_validation_artifact)
+
+            model_trainer_artifact=self.start_model_trainer(data_transformation_artifact=data_transformation_artifact,data_validation_artifact=data_validation_artifact,
+            )
+
+            model_performance_tracker_artifact=self.start_performance_tracker(model_trainer_artifact=model_trainer_artifact,data_validation_artifact=data_validation_artifact)
+
+            print(model_performance_tracker_artifact)
+            # if model_performance_tracker_artifact.r2_score == True:
+            #     pass ## Its like we will implement this side in batch_prediction
+
             logging.info("Machine learning pipeline excecuted")
 
-            logging.info("Pushing Artifact and Saved Model to AWS S3 Bucket")
-            self.sync_artifact_dir_to_s3()
-            self.sync_saved_model_dir_to_s3()
-            logging.info("Syncing to AWS S3 Bucket successful")
+            # logging.info("Pushing Artifact and Saved Model to AWS S3 Bucket")
+            # self.sync_artifact_dir_to_s3()
+            # self.sync_saved_model_dir_to_s3()
+            # logging.info("Syncing to AWS S3 Bucket successful")
 
             return model_trainer_artifact
         except Exception as e:
