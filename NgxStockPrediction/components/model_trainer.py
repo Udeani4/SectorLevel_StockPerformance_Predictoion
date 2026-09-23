@@ -26,7 +26,7 @@ import mlflow ## For tracking and managing your machine learning project
 
 import dagshub
 
-dagshub.init(repo_owner='udeaniizu04', repo_name='SectorLevel_StockPerformance_Predictoion', mlflow=True) ## This is the template in dagshub(under experiment), after i have connected to my github repository. This part was copied only because the mlfow object is already here in ModelTrainer.track_mlflow
+# dagshub.init(repo_owner='udeaniizu04', repo_name='SectorLevel_StockPerformance_Predictoion', mlflow=True) ## This is the template in dagshub(under experiment), after i have connected to my github repository. This part was copied only because the mlfow object is already here in ModelTrainer.track_mlflow
 
 class ModelTrainer:
     def __init__(self,model_trainer_config:ModelTrainerConfig,data_validation_artifact: DataValidationArtifact,data_transformation_artifact:DataTransformationArtifact):
@@ -92,12 +92,12 @@ class ModelTrainer:
                 y_true=np.asarray(y_test), y_pred=np.asarray(y_pred)
             )
             # track the experiments with flow
-            self.track_mlflow(
-                model_type='sarima',
-                best_model=model,
-                performance_metric=performance_metric,
-                model_parameters=model_parmeters
-            ) ## a folder will be created called mlruns. You will be able to see the number of experiments (folder) that will contain the outputs of the entire run flow. inside the mlruns->0 (folder) contains the experiments. NOTE: It is advisable not to push mlruns folder to github unless it is very necessary for prodution. 
+            # self.track_mlflow(
+            #     model_type='sarima',
+            #     best_model=model,
+            #     performance_metric=performance_metric,
+            #     model_parameters=model_parmeters
+            # ) ## a folder will be created called mlruns. You will be able to see the number of experiments (folder) that will contain the outputs of the entire run flow. inside the mlruns->0 (folder) contains the experiments. NOTE: It is advisable not to push mlruns folder to github unless it is very necessary for prodution. 
             
             ## But dagshub will now collect all the experiment files instead. since we have initialized it
 
@@ -142,12 +142,12 @@ class ModelTrainer:
             )
 
             # track the experiments with flow
-            self.track_mlflow(
-                model_type='sarimax',
-                best_model=model,
-                performance_metric=performance_metric,
-                model_parameters=model_parmeters
-            ) ## a folder will be created called mlruns. You will be able to see the number of experiments (folder) that will contain the outputs of the entire run flow. inside the mlruns->0 (folder) contains the experiments. NOTE: It is advisable not to push mlruns folder to github unless it is very necessary for prodution. 
+            # self.track_mlflow(
+            #     model_type='sarimax',
+            #     best_model=model,
+            #     performance_metric=performance_metric,
+            #     model_parameters=model_parmeters
+            # ) ## a folder will be created called mlruns. You will be able to see the number of experiments (folder) that will contain the outputs of the entire run flow. inside the mlruns->0 (folder) contains the experiments. NOTE: It is advisable not to push mlruns folder to github unless it is very necessary for prodution. 
             
             ## But dagshub will now collect all the experiment files instead. since we have initialized it
 

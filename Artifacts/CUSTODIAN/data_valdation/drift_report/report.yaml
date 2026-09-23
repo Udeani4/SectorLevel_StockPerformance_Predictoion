@@ -1,0 +1,24 @@
+close_price:
+  drift_status: true
+  p_value: 9.424792077014814e-12
+id:
+  drift_status: true
+  p_value: 1.4516307516814141e-06
+month:
+  drift_status: false
+  p_value: 0.9966848230553775
+open_price:
+  drift_status: true
+  p_value: 9.424792077014814e-12
+quarter:
+  drift_status: false
+  p_value: 0.9988208244848388
+returns:
+  drift_status: true
+  p_value: .nan
+volume:
+  drift_status: false
+  p_value: 0.05983700544503406
+year:
+  drift_status: true
+  p_value: 1.320284850097816e-08

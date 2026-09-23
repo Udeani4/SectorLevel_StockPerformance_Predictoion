@@ -1,0 +1,2 @@
+year,month_predicted,next_month_close_price_prediction,r2_score,rmse,tp,tn,fp,fn,movement_accuracy,order,seasonal_order
+2026,8,418.2290321510077,0.6786494868412012,41.22498632667918,5,0,5,0,0.5,"(0, 2, 0)","(2, 2, 0, 12)"

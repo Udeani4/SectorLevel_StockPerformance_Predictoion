@@ -45,6 +45,10 @@ app.add_middleware( ## This will allow access to the browser
     allow_headers=["*"]
 )
 
+from fastapi.templating import Jinja2Templates ## this is responsible for picking up the html files in the template
+templates = Jinja2Templates(directory="templates") ## define the templates
+
+
 @app.get("/",tags=["authentication"]) ## a get request
 async def index():
     return RedirectResponse(url="/docs")
@@ -68,5 +72,32 @@ async def train_route():
     except Exception as e:
         raise NGXStockPredictionException(e,sys)
 
-if __name__=="__main__":
-    app_run(app=app,host="0.0.0.0",port=8000)    
+
+@app.post("/predict")
+async def predict_route(request:Request, file:UploadFile=File(...)):
+    try:
+        df=pd.read_csv(file.file)
+        ##print(df)
+        preprocessor=load_object("final_model/preprocessor.pkl")
+        final_model=load_object("final_model/model.pkl")
+        network_model=NetworkModel(preprocessor=preprocessor,model=final_model)
+        print(df.iloc[0])
+        y_pred=network_model.predict(df)
+        print(y_pred)
+        df['predicted_column']=y_pred
+        print(df['predicted_column'])
+
+        df.to_csv("prediction_output/output.csv")
+        table_html=df.to_html(classes='table table-striped')
+        return templates.TemplateResponse(
+            "table.html",
+            {
+                "request":request,
+                "table":table_html
+            }
+        )
+    except Exception as e:
+        raise NetworkSecurityException(e,sys)
+
+# if __name__=="__main__":
+    # app_run(app=app,host="0.0.0.0",port=8000)    

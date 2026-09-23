@@ -1,30 +1,3 @@
-# import requests
-# import os
-# from dotenv import load_dotenv
-
-# load_dotenv()
-
-# ngx_api_key=os.getenv("NGX_API_KEY")
-
-# ngx_market_url = "https://www.ngxpulse.ng/api/ngxdata/market"
-# ngx_stocks_url = "https://www.ngxpulse.ng/api/ngxdata/stocks"
-
-# headers = {
-#     "X-API-Key": f"{ngx_api_key}",
-#     "Content-Type": "application/json"
-# }
-
-# response = requests.get(ngx_stocks_url, headers=headers)
-
-# print(response.status_code)
-
-# if response.status_code == 200:
-#     data = response.json()
-#     print(data)
-# else:
-#     print(response.text)
-
-
 ## let us test what we have done
 from NgxStockPrediction.components.data_ingestion import DataIngestion
 from NgxStockPrediction.components.data_validation import DataValidation
@@ -71,8 +44,8 @@ if __name__ == "__main__":
 
         modeltrainerartifact=modeltrainer.initiate_model_trainer(
             model_type="sarima",
-            order=(2,2,2), 
-            seasonal_order=(1,2,0,12),
+            order=(2,2,0),
+            seasonal_order=(1,2,1,12),
             forecast_step=1 ## We cant forecast further FOR SARIMAX like we do in sarima. Because we will need to provide the explanatory variables (exog) for that forcast.
         )
         print(modeltrainerartifact)
