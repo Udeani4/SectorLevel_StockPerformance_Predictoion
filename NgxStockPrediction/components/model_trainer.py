@@ -63,11 +63,45 @@ class ModelTrainer:
             mlflow.log_param('seasonal_order',seasonal_order)
             mlflow.statsmodels.log_model(best_model,f'{self.symbol}_model')
 
-    
+    def update_current_model_parameter(self, stock: str, target: str, order, seasonal_order, r2_score, rmse):
+        try:
+            path = 'model_parameters/current_model_parameters.csv'
+
+            params_df = self.read_data(path)
+
+            # mask = (params_df['stock'] == stock) & (params_df['target'] == target)
+            mask = (params_df['stock'] == stock)
+
+            if mask.any():
+                # Update existing row
+                params_df.loc[mask, 'target'] = target
+                params_df.loc[mask, 'order'] = [order]
+                params_df.loc[mask, 'seasonal_order'] = [seasonal_order]
+                params_df.loc[mask, 'r2_score'] = r2_score
+                params_df.loc[mask, 'rmse'] = rmse
+            else:
+                # Row doesn't exist yet, append it
+                new_row = {
+                    'stock': stock,
+                    'target': target,
+                    'order': order,
+                    'seasonal_order': seasonal_order,
+                    'r2_score': r2_score,
+                    'rmse': rmse
+                }
+                params_df = pd.concat([params_df, pd.DataFrame([new_row])], ignore_index=True)
+
+            params_df.to_csv(path, index=False)
+
+            return params_df
+
+        except Exception as e:
+            raise NGXStockPredictionException(e, sys)
+        
     def sarima_train_model(self,train_data,test_data,order,seasonal_order,forecast_step): ## we will do both train and evaluation here so we dont have to create another file for it
         try:
             ## store model parameters for the artifact
-            model_parmeters={'order':order,'seasonal_order':seasonal_order,'forecast_step':forecast_step}
+            model_parameters={'order':order,'seasonal_order':seasonal_order,'forecast_step':forecast_step}
 
             y_train=train_data[self.target_name].dropna()
             y_test=test_data[self.target_name].dropna()
@@ -86,7 +120,6 @@ class ModelTrainer:
 
             print(f'complete forecast {self.target_name}: ', fcst)
             print(f'The next two months {self.target_name}: ',future)
-
 
             performance_metric = get_performance_score(
                 y_true=np.asarray(y_test), y_pred=np.asarray(y_pred)
@@ -110,10 +143,20 @@ class ModelTrainer:
             ## Model Trainer Artifact
             model_trainer_artifact=ModelTrainerArtifact(
                 trained_model_file_path=self.model_trainer_config.trained_model_file_path,test_metric_artifact=performance_metric,
-                training_parameters=model_parmeters)
+                training_parameters=model_parameters)
             logging.info(f"Model trainer artifact: {model_trainer_artifact}") 
 
+            self.update_current_model_parameter(
+                stock=self.symbol,
+                target=self.target_name,
+                order=model_parameters['order'],
+                seasonal_order=model_parameters['seasonal_order'],
+                r2_score=performance_metric.r2_score,
+                rmse=performance_metric.rmse
+            )
+
             return model_trainer_artifact
+        
         except Exception as e:
             raise NGXStockPredictionException(e,sys)
 

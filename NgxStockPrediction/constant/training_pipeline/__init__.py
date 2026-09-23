@@ -25,6 +25,7 @@ SCHEMA_FILE_PATH=os.path.join("data_schema","schema.yaml") ## The schema file wi
 SAVED_MODEL_DIR=os.path.join("saved_models") ## It will join to whatever directory you attach it to, creating a folder
 MODEL_FILE_NAME:str="model.pkl"
 
+
 """
 Data Ingestion related constant start with DATA_INGESTION VAR NAME
 """
