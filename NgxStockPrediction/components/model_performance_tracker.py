@@ -108,109 +108,119 @@ class ModelPerformanceTracker:
             raise NGXStockPredictionException(e,sys)
 
     def update_performance_tracker(self, movement_cm, next_fcst):
-        performance_data_path = self.model_performance_tracker_config.model_performance_data_path
-        tracker_path = self.model_performance_tracker_config.model_performance_tracker_path
-        model_parameters = self.model_trainer_artifact.training_parameters
+        try:
+            performance_data_path = self.model_performance_tracker_config.model_performance_data_path
+            tracker_path = self.model_performance_tracker_config.model_performance_tracker_path
+            model_parameters = self.model_trainer_artifact.training_parameters
 
-        if os.path.exists(performance_data_path):
-            performance_df = self.read_data(performance_data_path)
-        else:
-            return "Performance Dataframe does not exist"
+            if os.path.exists(performance_data_path):
+                performance_df = self.read_data(performance_data_path)
+            else:
+                return "Performance Dataframe does not exist"
 
-        tn, fp, fn, tp = movement_cm.ravel()
-        movement_accuracy = (tp + tn) / (tp + tn + fp + fn)
+            tn, fp, fn, tp = movement_cm.ravel()
+            movement_accuracy = (tp + tn) / (tp + tn + fp + fn)
 
-        r2 = r2_score(performance_df['true'], performance_df['predicted'])
-        rmse = np.sqrt(mean_squared_error(performance_df['true'], performance_df['predicted']))
+            r2 = r2_score(performance_df['true'], performance_df['predicted'])
+            rmse = np.sqrt(mean_squared_error(performance_df['true'], performance_df['predicted']))
 
-        last_row = performance_df.iloc[-1]
-        year = int(last_row['year'])
-        month = int(last_row['month'])
+            last_row = performance_df.iloc[-1]
+            year = int(last_row['year'])
+            month = int(last_row['month'])
 
-        if month == 12:
-            next_year, next_month = year + 1, 1
-        else:
-            next_year, next_month = year, month + 1
+            if month == 12:
+                next_year, next_month = year + 1, 1
+            else:
+                next_year, next_month = year, month + 1
 
-        new_row = {
-            'year': next_year,
-            'month_predicted': next_month,
-            f"next_month_{self.target_name}_prediction": next_fcst,
-            'r2_score': r2,
-            'rmse': rmse,
-            'tp': tp,
-            'tn': tn,
-            'fp': fp,
-            'fn': fn,
-            'movement_accuracy': movement_accuracy,
-            'order': model_parameters['order'],
-            'seasonal_order': model_parameters['seasonal_order']
-        }
+            new_row = {
+                'year': next_year,
+                'month_predicted': next_month,
+                f"next_month_{self.target_name}_prediction": next_fcst,
+                'r2_score': r2,
+                'rmse': rmse,
+                'tp': tp,
+                'tn': tn,
+                'fp': fp,
+                'fn': fn,
+                'movement_accuracy': movement_accuracy,
+                'order': model_parameters['order'],
+                'seasonal_order': model_parameters['seasonal_order']
+            }
 
-        numeric_cols = ['r2_score', 'rmse', 'tp', 'tn', 'fp', 'fn', 'movement_accuracy',
-                        f'next_month_{self.target_name}_prediction']
+            numeric_cols = ['r2_score', 'rmse', 'tp', 'tn', 'fp', 'fn', 'movement_accuracy',
+                            f'next_month_{self.target_name}_prediction']
 
-        if os.path.exists(tracker_path):
-            tracker_df = pd.read_csv(tracker_path)
-            for c in numeric_cols:
-                if c in tracker_df.columns:
-                    tracker_df[c] = pd.to_numeric(tracker_df[c], errors='coerce')
-        else:
-            tracker_df = pd.DataFrame(columns=list(new_row.keys()))
+            if os.path.exists(tracker_path):
+                tracker_df = pd.read_csv(tracker_path)
+                for c in numeric_cols:
+                    if c in tracker_df.columns:
+                        tracker_df[c] = pd.to_numeric(tracker_df[c], errors='coerce')
+            else:
+                tracker_df = pd.DataFrame(columns=list(new_row.keys()))
 
-        # check if an entry for this year/month already exists
-        existing_mask = (
-            (tracker_df['year'] == next_year) &
-            (tracker_df['month_predicted'] == next_month) &
-            (tracker_df['order'].astype(str) == str(new_row['order'])) &
-            (tracker_df['seasonal_order'].astype(str) == str(new_row['seasonal_order']))
-        )
-        
-        if existing_mask.any():
-            existing_row = tracker_df.loc[existing_mask].iloc[0]
+            # check if an entry for this year/month already exists
+            existing_mask = (
+                (tracker_df['year'] == next_year) &
+                (tracker_df['month_predicted'] == next_month) &
+                (tracker_df['order'].astype(str) == str(new_row['order'])) &
+                (tracker_df['seasonal_order'].astype(str) == str(new_row['seasonal_order']))
+            )
+            
+            if existing_mask.any():
+                existing_row = tracker_df.loc[existing_mask].iloc[0]
 
-            # compare all fields except year/month_predicted (the key itself)
-            compare_cols = [c for c in new_row.keys() if c not in ('year', 'month_predicted')]
-            is_identical = all(
-                self._values_close(existing_row[c], new_row[c]) for c in compare_cols
+                # compare all fields except year/month_predicted (the key itself)
+                compare_cols = [c for c in new_row.keys() if c not in ('year', 'month_predicted')]
+                is_identical = all(
+                    self._values_close(existing_row[c], new_row[c]) for c in compare_cols
+                )
+
+                if is_identical:
+                    # nothing changed — skip write entirely, just recompute the comparison result
+                    previous_row = tracker_df.iloc[tracker_df.index.get_loc(existing_mask.idxmax()) - 1] \
+                        if existing_mask.idxmax() > 0 else None
+                else:
+                    # data changed — replace the existing row in place
+                    row_idx = tracker_df.loc[existing_mask].index[0]
+
+                    scalar_cols = [c for c in new_row.keys() if c not in ('order', 'seasonal_order')]
+                    tracker_df.loc[row_idx, scalar_cols] = [new_row[c] for c in scalar_cols]
+                    tracker_df.loc[row_idx, 'order'] = str(new_row['order'])
+                    tracker_df.loc[row_idx, 'seasonal_order'] = str(new_row['seasonal_order'])
+
+                    tracker_df.to_csv(tracker_path, index=False)
+                    prev_idx = existing_mask.idxmax() - 1
+                    previous_row = tracker_df.loc[prev_idx] if prev_idx >= 0 else None
+            else:
+                # brand new entry — append
+                previous_row = tracker_df.iloc[-1] if len(tracker_df) > 0 else None
+
+                new_row_for_storage = dict(new_row)
+                new_row_for_storage['order'] = str(new_row['order'])
+                new_row_for_storage['seasonal_order'] = str(new_row['seasonal_order'])
+
+                tracker_df = pd.concat([tracker_df, pd.DataFrame([new_row_for_storage])], ignore_index=True)
+                tracker_df.to_csv(tracker_path, index=False)
+
+            if previous_row is not None:
+                result = {
+                    'r2_score': r2 < previous_row['r2_score'],
+                    'rmse': rmse > previous_row['rmse']
+                }
+            else:
+                result = {'r2_score': False, 'rmse': False}
+                
+
+            performance_metric_tracker_artifact=PerformanceMetricTrackerArtifact(
+                r2_score=result['r2_score'],
+                rmse=result['rmse']
             )
 
-            if is_identical:
-                # nothing changed — skip write entirely, just recompute the comparison result
-                previous_row = tracker_df.iloc[tracker_df.index.get_loc(existing_mask.idxmax()) - 1] \
-                    if existing_mask.idxmax() > 0 else None
-            else:
-                # data changed — replace the existing row in place
-                row_idx = tracker_df.loc[existing_mask].index[0]
-
-                scalar_cols = [c for c in new_row.keys() if c not in ('order', 'seasonal_order')]
-                tracker_df.loc[row_idx, scalar_cols] = [new_row[c] for c in scalar_cols]
-                tracker_df.loc[row_idx, 'order'] = str(new_row['order'])
-                tracker_df.loc[row_idx, 'seasonal_order'] = str(new_row['seasonal_order'])
-
-                tracker_df.to_csv(tracker_path, index=False)
-                prev_idx = existing_mask.idxmax() - 1
-                previous_row = tracker_df.loc[prev_idx] if prev_idx >= 0 else None
-        else:
-            # brand new entry — append
-            previous_row = tracker_df.iloc[-1] if len(tracker_df) > 0 else None
-
-            new_row_for_storage = dict(new_row)
-            new_row_for_storage['order'] = str(new_row['order'])
-            new_row_for_storage['seasonal_order'] = str(new_row['seasonal_order'])
-
-            tracker_df = pd.concat([tracker_df, pd.DataFrame([new_row_for_storage])], ignore_index=True)
-            tracker_df.to_csv(tracker_path, index=False)
-
-        if previous_row is not None:
-            result = {
-                'r2_score': r2 < previous_row['r2_score'],
-                'rmse': rmse > previous_row['rmse']
-            }
-        else:
-            result = {'r2_score': False, 'rmse': False}
-
-        return result
+            return performance_metric_tracker_artifact
+        
+        except Exception as e:
+            raise NGXStockPredictionException(e,sys)
     
     def initiate_performance_tracker(self)->PerformanceMetricTrackerArtifact:
         """

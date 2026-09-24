@@ -67,32 +67,32 @@ class ModelTrainer:
         try:
             path = 'model_parameters/current_model_parameters.csv'
 
-            params_df = self.read_data(path)
+            if os.path.exists(path) and os.path.getsize(path) > 0:
+                params_df = self.read_data(path)
+            else:
+                params_df = pd.DataFrame(columns=['stock', 'target', 'order', 'seasonal_order', 'r2_score', 'rmse'])
 
-            # mask = (params_df['stock'] == stock) & (params_df['target'] == target)
-            mask = (params_df['stock'] == stock)
-
-            # mask = (params_df['stock'] == stock) if 'stock' in params_df.columns else pd.Series(dtype=bool)
+            mask = (params_df['stock'] == stock) if 'stock' in params_df.columns else pd.Series(dtype=bool)
 
             if mask.any():
-                # Update existing row
-                params_df.loc[mask, 'target'] = target
-                params_df.loc[mask, 'order'] = [order]
-                params_df.loc[mask, 'seasonal_order'] = [seasonal_order]
-                params_df.loc[mask, 'r2_score'] = r2_score
-                params_df.loc[mask, 'rmse'] = rmse
+                idx = params_df.index[mask][0]  # the single matching row's index label
+                params_df.at[idx, 'target'] = target
+                params_df.at[idx, 'order'] = str(order)
+                params_df.at[idx, 'seasonal_order'] = str(seasonal_order)
+                params_df.at[idx, 'r2_score'] = float(r2_score)
+                params_df.at[idx, 'rmse'] = float(rmse)
             else:
-                # Row doesn't exist yet, append it
                 new_row = {
                     'stock': stock,
                     'target': target,
-                    'order': order,
-                    'seasonal_order': seasonal_order,
-                    'r2_score': r2_score,
-                    'rmse': rmse
+                    'order': str(order),
+                    'seasonal_order': str(seasonal_order),
+                    'r2_score': float(r2_score),
+                    'rmse': float(rmse)
                 }
                 params_df = pd.concat([params_df, pd.DataFrame([new_row])], ignore_index=True)
 
+            os.makedirs(os.path.dirname(path), exist_ok=True)
             params_df.to_csv(path, index=False)
 
             return params_df
@@ -238,8 +238,8 @@ class ModelTrainer:
                                                 )
                                         
                                         score = [p, i, q, P, D, Q,
-                                                performance_metric['accuracy'],
-                                                performance_metric['rmse']]
+                                                performance_metric.r2_score,
+                                                performance_metric.rmse]
                                         
                                         print(score)
                                         scores.append(score)
@@ -290,8 +290,8 @@ class ModelTrainer:
                                                 )
                                         
                                         score = [p, i, q, P, D, Q,
-                                                performance_metric['accuracy'],
-                                                performance_metric['rmse']]
+                                                performance_metric.r2_score,
+                                                performance_metric.rmse]
                                         
                                         print(score)
                                         scores.append(score)

@@ -13,6 +13,7 @@ from NgxStockPrediction.exception.exception import NGXStockPredictionException
 from NgxStockPrediction.logging.logger import logging
 from NgxStockPrediction.pipeline.training_pipeline import TrainingPipeline
 from NgxStockPrediction.utils.main_utils.utils import load_object
+from NgxStockPrediction.pipeline.batch_prediction import Predict
 # from NgxStockPrediction.utils.ml_utils.model.estimator import NetworkModel
 
 from NgxStockPrediction.constant.training_pipeline import DATA_INGESTION_DATABASE_NAME, DATA_INGESTION_COLLECTION_NAME
@@ -73,31 +74,31 @@ async def train_route():
         raise NGXStockPredictionException(e,sys)
 
 
-@app.post("/predict")
-async def predict_route(request:Request, file:UploadFile=File(...)):
-    try:
-        df=pd.read_csv(file.file)
-        ##print(df)
-        preprocessor=load_object("final_model/preprocessor.pkl")
-        final_model=load_object("final_model/model.pkl")
-        network_model=NetworkModel(preprocessor=preprocessor,model=final_model)
-        print(df.iloc[0])
-        y_pred=network_model.predict(df)
-        print(y_pred)
-        df['predicted_column']=y_pred
-        print(df['predicted_column'])
+# @app.post("/predict")
+# async def predict_route(request:Request, file:UploadFile=File(...)):
+#     try:
+#         df=pd.read_csv(file.file)
+#         ##print(df)
+#         preprocessor=load_object("final_model/preprocessor.pkl")
+#         final_model=load_object("final_model/model.pkl")
+#         network_model=NetworkModel(preprocessor=preprocessor,model=final_model)
+#         print(df.iloc[0])
+#         y_pred=network_model.predict(df)
+#         print(y_pred)
+#         df['predicted_column']=y_pred
+#         print(df['predicted_column'])
 
-        df.to_csv("prediction_output/output.csv")
-        table_html=df.to_html(classes='table table-striped')
-        return templates.TemplateResponse(
-            "table.html",
-            {
-                "request":request,
-                "table":table_html
-            }
-        )
-    except Exception as e:
-        raise NetworkSecurityException(e,sys)
+#         df.to_csv("prediction_output/output.csv")
+#         table_html=df.to_html(classes='table table-striped')
+#         return templates.TemplateResponse(
+#             "table.html",
+#             {
+#                 "request":request,
+#                 "table":table_html
+#             }
+#         )
+#     except Exception as e:
+#         raise NGXStockPredictionException(e,sys)
 
-# if __name__=="__main__":
-    # app_run(app=app,host="0.0.0.0",port=8000)    
+if __name__=="__main__":
+    app_run(app=app,host="0.0.0.0",port=8000)    
