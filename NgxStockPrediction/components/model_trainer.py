@@ -72,6 +72,8 @@ class ModelTrainer:
             # mask = (params_df['stock'] == stock) & (params_df['target'] == target)
             mask = (params_df['stock'] == stock)
 
+            # mask = (params_df['stock'] == stock) if 'stock' in params_df.columns else pd.Series(dtype=bool)
+
             if mask.any():
                 # Update existing row
                 params_df.loc[mask, 'target'] = target

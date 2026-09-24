@@ -221,6 +221,7 @@ class ModelPerformanceTracker:
             performance_metric_tracker_artifact=self.update_performance_tracker(movement_cm=performance_dict['confusion_matrix'],next_fcst=performance_dict[f'next_month_{self.target_name}'])
 
             return performance_metric_tracker_artifact
+        
         except Exception as e:
             raise NGXStockPredictionException(e,sys)
         

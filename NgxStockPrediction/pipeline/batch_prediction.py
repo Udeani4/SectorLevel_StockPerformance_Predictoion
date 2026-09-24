@@ -5,13 +5,7 @@ import os
 from NgxStockPrediction.exception.exception import NGXStockPredictionException
 from NgxStockPrediction.logging.logger import logging
 
-from NgxStockPrediction.entity.artifact_entity import DataTransformationArtifact,ModelTrainerArtifact,DataValidationArtifact
-from NgxStockPrediction.entity.config_entity import ModelTrainerConfig
-
-from NgxStockPrediction.utils.ml_utils.model.estimator import TimeNgxStockModel
 from NgxStockPrediction.utils.main_utils.utils import save_object,load_object, load_numpy_array_data
-from NgxStockPrediction.utils.ml_utils.metric.performance_metric import get_performance_score
-
 
 import random
 random.seed(12345)
@@ -54,7 +48,7 @@ class Predict:
     @staticmethod
     def get_stock_mkt_cap(stock: str):
         try:
-            all_stock_file_path = "stock_data/All_Stocks_Info.csv"
+            all_stock_file_path = "stock_data/All_Stocks_Info"
 
             all_stocks_info = pd.read_csv(all_stock_file_path)
 
@@ -116,6 +110,15 @@ class Predict:
             sector_path = f"feature_engineering/stocks_sectors/{sector}"
             current_params_path = "model_parameters/current_model_parameters.csv"
             current_params_df = self.read_data(current_params_path)
+            
+            working_stocks_dir = 'each_stock_model_notebook'  # anchor this properly relative to a known root, not '../../'
+
+            working_stocks = []
+            if os.path.exists(working_stocks_dir):
+                working_stocks = [f.split('_')[0] for f in os.listdir(working_stocks_dir)]
+
+            if not working_stocks:
+                raise ValueError(f"No working stocks found in {working_stocks_dir} — check the path.")
 
             stocks_mkt_cap = {}
             stocks_returns = {}
@@ -123,7 +126,7 @@ class Predict:
 
             for filename in os.listdir(sector_path):
                 stock = filename.split('_')[0]
-                if stock == 'INFINITY':
+                if stock == 'INFINITY' or stock not in working_stocks:
                     continue
 
                 target_match = current_params_df.loc[current_params_df['stock'] == stock, 'target']
@@ -144,11 +147,16 @@ class Predict:
                 returns_accuracy_list.append(stock_predictions['returns_accuracy'])
 
             total_mkt_cap = sum(stocks_mkt_cap.values())
+            print(f'{sector} total market cap: ', total_mkt_cap)
+            print(f"{sector} stocks market cap: ", stocks_mkt_cap)
+            print(f"{sector} stock returns: ", stocks_returns)
 
             weighted_stock_returns = {}
             if total_mkt_cap > 0:
                 for stock, returns in stocks_returns.items():
                     weighted_stock_returns[stock] = returns * (stocks_mkt_cap[stock] / total_mkt_cap)
+
+            print(f"{sector} weighted stock returns: ", weighted_stock_returns)
 
             # Already a weighted average — do NOT divide by len() again
             sector_returns = sum(weighted_stock_returns.values()) if weighted_stock_returns else 0
@@ -165,3 +173,5 @@ class Predict:
 
         except Exception as e:
             raise NGXStockPredictionException(e, sys)
+
+

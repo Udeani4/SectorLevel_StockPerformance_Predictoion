@@ -112,6 +112,7 @@ for key,value in default_parameters_dict.items():
     except Exception as e:
         print(f'Error occured with {key}')
         problem_stocks.append(key)
+        # raise NGXStockPredictionException(e,sys)
 
 dataframe = pd.DataFrame(data=data)
 dataframe.to_csv('model_parameters/current_model_parameters.csv')
