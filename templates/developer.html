@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Developer — NGX Predictions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css">
+<style>
+  .tabs {
+    display: flex;
+    gap: 0.4rem;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 2rem;
+  }
+  .tab {
+    padding: 0.7rem 1rem;
+    font-size: 0.92rem;
+    color: var(--muted);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+  .tab.active {
+    color: var(--ink);
+    border-bottom-color: var(--green);
+    font-weight: 500;
+  }
+  .panel-section { display: none; }
+  .panel-section.active { display: block; }
+
+  .card {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    padding: 1.6rem;
+    margin-bottom: 1.4rem;
+  }
+  .card h2 {
+    font-size: 1.15rem;
+    margin-bottom: 0.3rem;
+  }
+  .card .card-desc {
+    color: var(--muted);
+    font-size: 0.88rem;
+    margin: 0 0 1.4rem;
+  }
+
+  .status-line {
+    margin-top: 1rem;
+    padding: 0.75rem 0.9rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.88rem;
+    display: none;
+  }
+  .status-line.show { display: block; }
+  .status-line.ok { background: var(--positive-tint); color: var(--positive); }
+  .status-line.pending { background: var(--gold-tint); color: #7A5A1D; }
+
+  .log {
+    margin-top: 1rem;
+    background: var(--ink);
+    color: #DCE7DD;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    border-radius: var(--radius-sm);
+    padding: 0.9rem 1rem;
+    min-height: 3.4rem;
+    max-height: 220px;
+    overflow-y: auto;
+    display: none;
+    white-space: pre-wrap;
+  }
+  .log.show { display: block; }
+
+  .symbol-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.5rem;
+  }
+  .symbol-chip {
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    text-align: left;
+    color: var(--ink);
+  }
+  .symbol-chip:hover { border-color: var(--green); background: var(--green-tint); }
+  .symbol-chip.active { border-color: var(--green); background: var(--green); color: #fff; }
+</style>
+</head>
+<body>
+
+  <header class="topbar">
+    <a class="mark" href="/index.html">
+      <span class="dot"></span>
+      <span class="word">NGX Predictions</span>
+      <span class="sub">Developer</span>
+    </a>
+    <nav>
+      <a href="/user.html">User</a>
+      <a href="/developer.html" class="current">Developer</a>
+    </nav>
+  </header>
+
+  <main class="shell">
+    <div class="page-head">
+      <div>
+        <h1>Developer console</h1>
+        <p>Train models for a single stock or the whole pipeline, and review how past predictions held up.</p>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="train">Train a stock</button>
+      <button class="tab" data-tab="train-all">Train all stocks</button>
+      <button class="tab" data-tab="performance">Performance</button>
+    </div>
+
+    <!-- Train a stock -->
+    <section class="panel-section active" id="tab-train">
+      <div class="card">
+        <h2>Train a stock</h2>
+        <p class="card-desc">Run the pipeline for a single stock symbol.</p>
+        <form id="train-form">
+          <div class="field">
+            <label for="symbol">Stock symbol <span class="hint">required</span></label>
+            <input id="symbol" name="symbol" type="text" placeholder="e.g. ZENITHBANK" required autocomplete="off">
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="start_date">Start date</label>
+              <input id="start_date" name="start_date" type="date">
+            </div>
+            <div class="field">
+              <label for="end_date">End date</label>
+              <input id="end_date" name="end_date" type="date">
+            </div>
+            <div class="field">
+              <label for="forecast_horizon">Forecast horizon <span class="hint">days</span></label>
+              <input id="forecast_horizon" name="forecast_horizon" type="number" min="1" value="10">
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="order_p">SARIMA p</label>
+              <input id="order_p" name="order_p" type="number" min="0" value="1">
+            </div>
+            <div class="field">
+              <label for="order_d">SARIMA d</label>
+              <input id="order_d" name="order_d" type="number" min="0" value="1">
+            </div>
+            <div class="field">
+              <label for="order_q">SARIMA q</label>
+              <input id="order_q" name="order_q" type="number" min="0" value="1">
+            </div>
+          </div>
+          <button class="btn" type="submit" id="train-submit">Train stock</button>
+          <div class="status-line" id="train-status"></div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Train all stocks -->
+    <section class="panel-section" id="tab-train-all">
+      <div class="card">
+        <h2>Train all stocks</h2>
+        <p class="card-desc">Runs the full pipeline — ingestion, validation, transformation, and model training — across every tracked stock. This can take a while.</p>
+        <button class="btn" id="train-all-btn">Train all stocks</button>
+        <div class="status-line" id="train-all-status"></div>
+        <div class="log" id="train-all-log"></div>
+      </div>
+    </section>
+
+    <!-- Performance -->
+    <section class="panel-section" id="tab-performance">
+      <div class="card">
+        <h2>Performance</h2>
+        <p class="card-desc">Select a stock to see its recent prediction accuracy.</p>
+        <div class="symbol-grid" id="symbol-grid">
+          <div class="state-note" style="border:none; padding:0.5rem 0;"><strong>Loading stocks…</strong></div>
+        </div>
+      </div>
+
+      <div id="performance-results"></div>
+    </section>
+  </main>
+
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/developer.js"></script>
+</body>
+</html>

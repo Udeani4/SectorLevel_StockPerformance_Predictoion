@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stocks — NGX Predictions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css">
+<style>
+  .rowlist-head.stocks,
+  .row-item.stocks {
+    grid-template-columns: 1.7fr 0.9fr 0.9fr 1fr 1fr;
+  }
+</style>
+</head>
+<body>
+
+  <header class="topbar">
+    <a class="mark" href="/index.html">
+      <span class="dot"></span>
+      <span class="word">NGX Predictions</span>
+      <span class="sub">User</span>
+    </a>
+    <nav>
+      <a href="/user.html">Sectors</a>
+      <a href="/developer.html">Developer</a>
+    </nav>
+  </header>
+
+  <main class="shell">
+    <div class="crumb"><a href="/user.html">Sectors</a> / <span id="sector-crumb">…</span></div>
+    <div class="page-head">
+      <div>
+        <h1 id="sector-title">Stocks</h1>
+        <p>Predicted return, model accuracy, forecast direction, and the model's track record on direction alone.</p>
+      </div>
+    </div>
+
+    <div class="rowlist">
+      <div class="rowlist-head stocks">
+        <span data-sortable="symbol">Stock <span class="arrow">↕</span></span>
+        <span data-sortable="predicted_return">Predicted return <span class="arrow">↕</span></span>
+        <span data-sortable="accuracy">Accuracy <span class="arrow">↕</span></span>
+        <span data-sortable="movement">Movement <span class="arrow">↕</span></span>
+        <span data-sortable="movement_accuracy">Movement accuracy <span class="arrow">↕</span></span>
+      </div>
+      <div id="stock-rows">
+        <div class="state-note"><strong>Loading stocks…</strong></div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/stocks.js"></script>
+</body>
+</html>

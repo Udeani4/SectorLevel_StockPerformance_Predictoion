@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NGX Predictions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css">
+<style>
+  html, body { height: 100%; }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .landing {
+    text-align: center;
+    max-width: 460px;
+    padding: 2rem;
+  }
+  .landing .dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--green);
+    display: inline-block;
+    margin-bottom: 1.4rem;
+  }
+  .landing h1 {
+    font-size: 2.1rem;
+    margin-bottom: 0.6rem;
+  }
+  .landing p {
+    color: var(--muted);
+    margin: 0 0 2.2rem;
+  }
+  .choices {
+    display: flex;
+    gap: 0.9rem;
+    justify-content: center;
+  }
+  .choice {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 1.5rem 1rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: var(--ink);
+    background: var(--surface);
+    transition: border-color 120ms ease, background 120ms ease;
+  }
+  .choice .label {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+  }
+  .choice .desc {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .choice:hover {
+    border-color: var(--green);
+    background: var(--green-tint);
+  }
+  .choice.dev:hover {
+    border-color: var(--gold);
+    background: var(--gold-tint);
+  }
+  @media (max-width: 420px) {
+    .choices { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="landing">
+    <span class="dot"></span>
+    <h1>NGX Predictions</h1>
+    <p>Stock return forecasts for the Nigerian Exchange.</p>
+    <div class="choices">
+      <a class="choice user" href="/user.html">
+        <span class="label">User</span>
+        <span class="desc">Browse sector &amp; stock forecasts</span>
+      </a>
+      <a class="choice dev" href="/developer.html">
+        <span class="label">Developer</span>
+        <span class="desc">Train models &amp; check performance</span>
+      </a>
+    </div>
+  </div>
+
+</body>
+</html>

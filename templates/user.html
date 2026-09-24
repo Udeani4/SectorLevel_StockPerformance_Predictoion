@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sectors — NGX Predictions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <a class="mark" href="/index.html">
+      <span class="dot"></span>
+      <span class="word">NGX Predictions</span>
+      <span class="sub">User</span>
+    </a>
+    <nav>
+      <a href="/user.html" class="current">Sectors</a>
+      <a href="/developer.html">Developer</a>
+    </nav>
+  </header>
+
+  <main class="shell">
+    <div class="page-head">
+      <div>
+        <h1>Sectors</h1>
+        <p>Next-period predicted return and model accuracy, aggregated by sector. Open a sector to see the individual stocks behind it.</p>
+      </div>
+    </div>
+
+    <div class="rowlist">
+      <div class="rowlist-head">
+        <span data-sortable="sector">Sector <span class="arrow">↕</span></span>
+        <span data-sortable="predicted_return">Predicted return <span class="arrow">↕</span></span>
+        <span data-sortable="accuracy">Accuracy <span class="arrow">↕</span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <div id="sector-rows">
+        <div class="state-note"><strong>Loading sectors…</strong> Fetching the latest forecasts.</div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/user.js"></script>
+</body>
+</html>
