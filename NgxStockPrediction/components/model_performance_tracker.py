@@ -80,8 +80,8 @@ class ModelPerformanceTracker:
                 test_list_for_movement = [last_train_price] + y_test.tolist()
                 fcst_list_for_movement = [last_train_price] + list(fcst[:10])
 
-                true_pct_change = pd.Series(test_list_for_movement).pct_change().dropna().reset_index(drop=True)
-                predicted_pct_change = pd.Series(fcst_list_for_movement).pct_change().dropna().reset_index(drop=True)
+                true_pct_change = (pd.Series(test_list_for_movement).pct_change()*100).dropna().reset_index(drop=True)
+                predicted_pct_change = (pd.Series(fcst_list_for_movement).pct_change()*100).dropna().reset_index(drop=True)
 
                 performance_df['true_pct_change'] = true_pct_change
                 performance_df['predicted_pct_change'] = predicted_pct_change

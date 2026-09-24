@@ -50,6 +50,23 @@ class Predict:
             return None  # stock not found in any sector
         except Exception as e:
             raise NGXStockPredictionException(e, sys)
+
+    @staticmethod
+    def get_stock_mkt_cap(stock: str):
+        try:
+            all_stock_file_path = "stock_data/All_Stocks_Info.csv"
+
+            all_stocks_info = pd.read_csv(all_stock_file_path)
+
+            match = all_stocks_info.loc[all_stocks_info['symbol'] == stock, 'market_cap']
+
+            if match.empty:
+                raise ValueError(f"No market cap data found for stock: {stock}")
+
+            return match.values[0]
+
+        except Exception as e:
+            raise NGXStockPredictionException(e, sys)
         
     def predict_stock_returns_and_movement(self, target_name: str, stock: str, forecast_step: int):
         try:
@@ -63,13 +80,13 @@ class Predict:
             last_pred = stock_preds.iloc[-1] if hasattr(stock_preds, 'iloc') else stock_preds[-1]
 
             if target_name == 'close_price':
-                returns = last_pred - performance_data['true'].iloc[-1]
+                returns = ((last_pred - performance_data['true'].iloc[-1]) / performance_data['true'].iloc[-1])*100
             elif target_name == 'returns':
                 returns = last_pred
             else:
                 raise ValueError(f"Unsupported target_name: {target_name}")
 
-            stock_movement = "up" if returns >= 0 else "down"
+            stock_movement = "up" if returns > 0 else "down"
 
             movement_cm = confusion_matrix(
                 performance_data['true_movement'],
@@ -82,11 +99,11 @@ class Predict:
             r2_ = r2_score(y_true=performance_data['true'], y_pred=performance_data['predicted'])
 
             predictions = {
-                'returns': returns,
+                'returns': returns, ## this is the next months returns
                 'movement': stock_movement,
                 'returns_accuracy': r2_,
                 'movement_accuracy': movement_accuracy,
-                'next_forecast': last_pred
+                # 'next_forecast': last_pred
             }
 
             return predictions
@@ -94,21 +111,57 @@ class Predict:
         except Exception as e:
             raise NGXStockPredictionException(e, sys)
 
-    def predict_sector_returns_and_movement(self, sector: str):
+    def predict_sector_returns_and_movement(self, sector: str, forecast_step: int):
         try:
-            sector_path=f"feature_engineering/stocks_sectors/{sector}"
-            current_params_path="model_parameters/current_model_parameters.csv"
-            current_params_df=self.read_data(current_params_path)
+            sector_path = f"feature_engineering/stocks_sectors/{sector}"
+            current_params_path = "model_parameters/current_model_parameters.csv"
+            current_params_df = self.read_data(current_params_path)
 
+            stocks_mkt_cap = {}
+            stocks_returns = {}
+            returns_accuracy_list = []
 
             for filename in os.listdir(sector_path):
                 stock = filename.split('_')[0]
-                target_name=current_params_df.loc[stock,'target']
-                
+                if stock == 'INFINITY':
+                    continue
 
+                target_match = current_params_df.loc[current_params_df['stock'] == stock, 'target']
+                if target_match.empty:
+                    continue  # stock hasn't been trained yet, skip it
 
-                    
+                target_name = target_match.values[0]
+
+                stock_predictions = self.predict_stock_returns_and_movement(
+                    target_name=target_name,
+                    stock=stock,
+                    forecast_step=forecast_step
+                )
+
+                stock_mkt_cap = self.get_stock_mkt_cap(stock=stock)
+                stocks_mkt_cap[stock] = stock_mkt_cap
+                stocks_returns[stock] = stock_predictions['returns']
+                returns_accuracy_list.append(stock_predictions['returns_accuracy'])
+
+            total_mkt_cap = sum(stocks_mkt_cap.values())
+
+            weighted_stock_returns = {}
+            if total_mkt_cap > 0:
+                for stock, returns in stocks_returns.items():
+                    weighted_stock_returns[stock] = returns * (stocks_mkt_cap[stock] / total_mkt_cap)
+
+            # Already a weighted average — do NOT divide by len() again
+            sector_returns = sum(weighted_stock_returns.values()) if weighted_stock_returns else 0
+            sector_movement = "up" if sector_returns > 0 else "down"
+            sector_accuracy = sum(returns_accuracy_list) / len(returns_accuracy_list) if returns_accuracy_list else 0
+
+            sector_predictions = {
+                'sector_returns': sector_returns,
+                'sector_movement': sector_movement,
+                'sector_accuracy': sector_accuracy
+            }
+
+            return sector_predictions
 
         except Exception as e:
-            raise NGXStockPredictionException(e,sys)
-
+            raise NGXStockPredictionException(e, sys)
