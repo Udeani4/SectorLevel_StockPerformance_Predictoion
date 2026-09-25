@@ -23,7 +23,11 @@
 
     const rows = [...sectors];
     if (sortKey) {
-      rows.sort((a, b) => (a[sortKey] > b[sortKey] ? 1 : a[sortKey] < b[sortKey] ? -1 : 0) * sortDir);
+      rows.sort(
+        (a, b) =>
+          (a[sortKey] > b[sortKey] ? 1 : a[sortKey] < b[sortKey] ? -1 : 0) *
+          sortDir,
+      );
     }
 
     container.innerHTML = rows
@@ -36,7 +40,7 @@
             <span class="primary">${s.sector}</span>
             <span class="secondary">View stocks in this sector</span>
           </div>
-          <span class="pct ${returnClass}">${pct(s.predicted_return)}</span>
+          <span class="pct ${returnClass}">${s.predicted_return.toFixed(1)}%</span>
           <div class="meter">
             <span class="meter-track"><span class="meter-fill" style="--fill:${accPct}%"></span></span>
             <span class="meter-label">${accPct}%</span>

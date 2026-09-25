@@ -250,47 +250,47 @@ class NGXStockDataExtract:
             raise NGXStockPredictionException(e, sys)
 
 
-if __name__ == '__main__':
-    # DATABASE = "NGX_Stock_ME_Database"
-    # Collection = "stock_data"
+# if __name__ == '__main__':
+#     # DATABASE = "NGX_Stock_ME_Database"
+#     # Collection = "stock_data"
 
-    # ngxstockobj = NGXStockDataExtract()
-    # stock_files = os.listdir('stock_data')
+#     # ngxstockobj = NGXStockDataExtract()
+#     # stock_files = os.listdir('stock_data')
 
-    # for data in stock_files:
+#     # for data in stock_files:
 
-    #     if data.endswith(".csv"):
+#     #     if data.endswith(".csv"):
 
-    #         FILE_PATH = f"stock_data/{data}"
+#     #         FILE_PATH = f"stock_data/{data}"
 
-    #         records = ngxstockobj.csv_to_json_converter(
-    #             file_path=FILE_PATH
-    #         )
+#     #         records = ngxstockobj.csv_to_json_converter(
+#     #             file_path=FILE_PATH
+#     #         )
 
-    #         no_of_records = ngxstockobj.insert_data_to_mongodb(
-    #             records,
-    #             DATABASE,
-    #             Collection
-    #         )
+#     #         no_of_records = ngxstockobj.insert_data_to_mongodb(
+#     #             records,
+#     #             DATABASE,
+#     #             Collection
+#     #         )
 
-    #         print(f"{data} inserted to mongodb: {no_of_records} records")
+#     #         print(f"{data} inserted to mongodb: {no_of_records} records")
 
-    # FILE_PATH="./macroeconomic_data/populated_cleaned_macro_data_adjusted2"
-    # DATABASE="NGX_Stock_ME_Database"
-    # Collection="macro_economic_data"
-    # ngxstockdataobj=NGXStockDataExtract()
-    # records=ngxstockdataobj.csv_to_json_converter(file_path=FILE_PATH)
-    # no_of_records=ngxstockdataobj.insert_data_to_mongodb(records,DATABASE,Collection)
-    # print(no_of_records)
+#     # FILE_PATH="./macroeconomic_data/populated_cleaned_macro_data_adjusted2"
+#     # DATABASE="NGX_Stock_ME_Database"
+#     # Collection="macro_economic_data"
+#     # ngxstockdataobj=NGXStockDataExtract()
+#     # records=ngxstockdataobj.csv_to_json_converter(file_path=FILE_PATH)
+#     # no_of_records=ngxstockdataobj.insert_data_to_mongodb(records,DATABASE,Collection)
+#     # print(no_of_records)
 
-    mongo_client = pymongo.MongoClient(mongo_db_uri)
+#     mongo_client = pymongo.MongoClient(mongo_db_uri)
 
-    database = mongo_client["NGX_Stock_ME_Database"]
-    collection = database["stock_data"]
+#     database = mongo_client["NGX_Stock_ME_Database"]
+#     collection = database["stock_data"]
 
-    collection.create_index(
-        [("symbol", 1), ("date", 1)],
-        unique=True
-    )
+#     collection.create_index(
+#         [("symbol", 1), ("date", 1)],
+#         unique=True
+#     )
 
-    print("Unique index created")
+#     print("Unique index created")

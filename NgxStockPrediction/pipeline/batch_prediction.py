@@ -99,7 +99,8 @@ class Predict:
                 'movement_accuracy': movement_accuracy,
                 # 'next_forecast': last_pred
             }
-
+            print(f"{stock} predictions: ", predictions)
+            
             return predictions
 
         except Exception as e:

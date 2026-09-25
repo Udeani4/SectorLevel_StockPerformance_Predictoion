@@ -85,35 +85,48 @@ default_parameters_dict={ ## The ones commented out are too small
     'ZENITHBANK': {'target_name':'close_price','order':(0,2,0),'seasonal_order':(2,1,0,12)}
     }
 
-data = []
-problem_stocks=[]
+class CreateAllStockModel:
+    def __init__(self):
+        self.data = []
+        self.problem_stocks = []
 
-for key,value in default_parameters_dict.items():
-    try:
-        train_pipeline=TrainingPipeline(
-            file_name=key,
-            target_name=value['target_name'],
-            model_type="sarima",
-            order=value['order'], 
-            seasonal_order=value['seasonal_order'],
-            forecast_step=1
-        )
+    def create_all_models(self):
+        try:
+            for key, value in default_parameters_dict.items():
+                try:
+                    train_pipeline = TrainingPipeline(
+                        file_name=key,
+                        target_name=value['target_name'],
+                        model_type="sarima",
+                        order=value['order'],
+                        seasonal_order=value['seasonal_order'],
+                        forecast_step=1
+                    )
 
-        model_trainer_artifact=train_pipeline.run_pipeline()
+                    model_trainer_artifact = train_pipeline.run_pipeline()
 
-        r2_score=model_trainer_artifact.test_metric_artifact.r2_score
-        rmse=model_trainer_artifact.test_metric_artifact.rmse
+                    r2_score = model_trainer_artifact.test_metric_artifact.r2_score
+                    rmse = model_trainer_artifact.test_metric_artifact.rmse
 
-        rows_dict={'stock': key, 'target': value['target_name'], 'order': value['order'], 'seasonal_order': value['seasonal_order'], 'r2_score':r2_score, 'rmse':rmse}
+                    rows_dict = {
+                        'stock': key,
+                        'target': value['target_name'],
+                        'order': value['order'],
+                        'seasonal_order': value['seasonal_order'],
+                        'r2_score': r2_score,
+                        'rmse': rmse
+                    }
 
-        data.append(rows_dict)
+                    self.data.append(rows_dict)
 
-        # return {"message":"Training endpoint reached"} ##comment out later
-    except Exception as e:
-        print(f'Error occured with {key}')
-        problem_stocks.append(key)
-        # raise NGXStockPredictionException(e,sys)
+                except Exception as e:
+                    print(f'Error occured with {key}')
+                    self.problem_stocks.append(key)
 
-dataframe = pd.DataFrame(data=data)
-dataframe.to_csv('model_parameters/current_model_parameters.csv')
-print('problem stocks', problem_stocks)
+            dataframe = pd.DataFrame(data=self.data)
+            os.makedirs('model_parameters', exist_ok=True)
+            dataframe.to_csv('model_parameters/current_model_parameters.csv',index=False)
+            print('problem stocks', self.problem_stocks)
+        except Exception as e:
+            raise NGXStockPredictionException(e, sys)
+
