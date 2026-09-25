@@ -21,12 +21,12 @@ load_dotenv()
 import certifi
 
 import pymongo
-# from NgxStockPrediction.exception.exception import NGXStockPredictionException
-# from NgxStockPrediction.logging.logger import logging
-# from NgxStockPrediction.pipeline.training_pipeline import TrainingPipeline
+from NgxStockPrediction.exception.exception import NGXStockPredictionException
+from NgxStockPrediction.logging.logger import logging
+from NgxStockPrediction.pipeline.training_pipeline import TrainingPipeline
 # from NgxStockPrediction.utils.main_utils.utils import load_object
 from NgxStockPrediction.pipeline.batch_prediction import Predict
-# from NgxStockPrediction.pipeline.create_all_stock_model import CreateAllStockModel
+from NgxStockPrediction.pipeline.create_all_stock_model import CreateAllStockModel
 
 from NgxStockPrediction.constant.training_pipeline import DATA_INGESTION_DATABASE_NAME, DATA_INGESTION_COLLECTION_NAME
 
@@ -51,89 +51,68 @@ collection=database[DATA_INGESTION_COLLECTION_NAME]
 # Field names match exactly what static/js/api.js expects.
 # ---------------------------------------------------------------------------
 
-# SECTORS = [
-#     {"sector": "Banking", "predicted_return": 0.048, "accuracy": 0.81},
-#     {"sector": "Consumer Goods", "predicted_return": 0.021, "accuracy": 0.74},
-#     {"sector": "Oil & Gas", "predicted_return": -0.014, "accuracy": 0.69},
-#     {"sector": "Industrial Goods", "predicted_return": 0.033, "accuracy": 0.77},
-#     {"sector": "Insurance", "predicted_return": 0.012, "accuracy": 0.63},
-#     {"sector": "Agriculture", "predicted_return": -0.006, "accuracy": 0.58},
-# ]
 
-STOCKS_BY_SECTOR = {
-    "Banking": [
-        {"symbol": "ZENITHBANK", "name": "Zenith Bank Plc", "predicted_return": 0.052,
-         "accuracy": 0.83, "movement": "up", "movement_accuracy": 0.88},
-        {"symbol": "GTCO", "name": "Guaranty Trust Holding Co.", "predicted_return": 0.041,
-         "accuracy": 0.80, "movement": "up", "movement_accuracy": 0.79},
-        {"symbol": "UBA", "name": "United Bank for Africa", "predicted_return": 0.037,
-         "accuracy": 0.76, "movement": "up", "movement_accuracy": 0.74},
-        {"symbol": "ACCESSCORP", "name": "Access Holdings Plc", "predicted_return": 0.028,
-         "accuracy": 0.72, "movement": "down", "movement_accuracy": 0.61},
-        {"symbol": "FBNH", "name": "FBN Holdings Plc", "predicted_return": -0.011,
-         "accuracy": 0.65, "movement": "down", "movement_accuracy": 0.69},
-    ],
-    "Consumer Goods": [
-        {"symbol": "NESTLE", "name": "Nestle Nigeria Plc", "predicted_return": 0.031,
-         "accuracy": 0.78, "movement": "up", "movement_accuracy": 0.75},
-        {"symbol": "BUAFOODS", "name": "BUA Foods Plc", "predicted_return": 0.024,
-         "accuracy": 0.71, "movement": "up", "movement_accuracy": 0.70},
-        {"symbol": "NB", "name": "Nigerian Breweries Plc", "predicted_return": -0.009,
-         "accuracy": 0.66, "movement": "down", "movement_accuracy": 0.64},
-    ],
-    "Oil & Gas": [
-        {"symbol": "SEPLAT", "name": "Seplat Energy Plc", "predicted_return": -0.018,
-         "accuracy": 0.70, "movement": "down", "movement_accuracy": 0.72},
-        {"symbol": "OANDO", "name": "Oando Plc", "predicted_return": -0.009,
-         "accuracy": 0.62, "movement": "down", "movement_accuracy": 0.58},
-    ],
-    "Industrial Goods": [
-        {"symbol": "DANGCEM", "name": "Dangote Cement Plc", "predicted_return": 0.036,
-         "accuracy": 0.79, "movement": "up", "movement_accuracy": 0.81},
-        {"symbol": "BUACEMENT", "name": "BUA Cement Plc", "predicted_return": 0.029,
-         "accuracy": 0.74, "movement": "up", "movement_accuracy": 0.70},
-    ],
-    "Insurance": [
-        {"symbol": "AIICO", "name": "AIICO Insurance Plc", "predicted_return": 0.014,
-         "accuracy": 0.60, "movement": "up", "movement_accuracy": 0.55},
-        {"symbol": "NEM", "name": "NEM Insurance Plc", "predicted_return": 0.009,
-         "accuracy": 0.64, "movement": "up", "movement_accuracy": 0.59},
-    ],
-    "Agriculture": [
-        {"symbol": "OKOMUOIL", "name": "Okomu Oil Palm Plc", "predicted_return": -0.004,
-         "accuracy": 0.59, "movement": "down", "movement_accuracy": 0.53},
-        {"symbol": "PRESCO", "name": "Presco Plc", "predicted_return": -0.008,
-         "accuracy": 0.57, "movement": "down", "movement_accuracy": 0.55},
-    ],
-}
 
-STOCK_LIST = [
-    {"symbol": s["symbol"], "name": s["name"]}
-    for stocks in STOCKS_BY_SECTOR.values()
-    for s in stocks
-]
 
+# def sample_performance(symbol: str):
+#     base = 100 + (ord(symbol[0]) % 20)
+#     rows = []
+#     today = date.today()
+#     for i in range(9, -1, -1):
+#         d = today - timedelta(days=i * 7)
+#         actual = round(base + random.uniform(-3, 3) + i * 0.6, 2)
+#         predicted = round(actual + random.uniform(-2, 2), 2)
+#         error = round((predicted - actual) / actual * 100, 2)
+#         rows.append({"date": d.isoformat(), "actual": actual, "predicted": predicted, "error": error})
+
+#     tracker = [
+#         {"metric": "MAE", "value": "1.84"},
+#         {"metric": "RMSE", "value": "2.41"},
+#         {"metric": "MAPE", "value": "2.1%"},
+#         {"metric": "Directional accuracy", "value": "76%"},
+#         {"metric": "Last trained", "value": (today - timedelta(days=2)).isoformat()},
+#         {"metric": "Training rows", "value": "105"},
+#         {"metric": "Test rows", "value": "10"},
+#     ]
+#     return {"performance_data": rows, "performance_tracker": tracker}
 
 def sample_performance(symbol: str):
-    base = 100 + (ord(symbol[0]) % 20)
-    rows = []
-    today = date.today()
-    for i in range(9, -1, -1):
-        d = today - timedelta(days=i * 7)
-        actual = round(base + random.uniform(-3, 3) + i * 0.6, 2)
-        predicted = round(actual + random.uniform(-2, 2), 2)
-        error = round((predicted - actual) / actual * 100, 2)
-        rows.append({"date": d.isoformat(), "actual": actual, "predicted": predicted, "error": error})
+    try:
+        df = pd.read_csv('model_parameters/current_model_parameters.csv')
+        target = df.loc[df['stock'] == symbol, 'target'].iloc[0]
+    except Exception as e:
+        print(f"Target error occured with {symbol} stock")
+        return {"performance_data": [], "performance_tracker": []}
 
+    performance_data_path = f'Artifacts/{symbol.upper()}/performance_tracker/{target}/performance_data.csv'
+    performance_tracker_path = f'Artifacts/{symbol.upper()}/performance_tracker/{target}/performance_tracker.csv'
+
+    performance_data_df = pd.read_csv(performance_data_path)
+    performance_tracker_df = pd.read_csv(performance_tracker_path)
+
+    rows = []
+    for _, row in performance_data_df.iterrows():
+        actual = row['true']
+        predicted = row['predicted']
+        error = round((predicted - actual) / actual * 100, 2) if actual != 0 else None
+        rows.append({
+            "date": f"{int(row['year'])}-{int(row['month']):02d}",  # e.g. "2025-10"
+            "actual": actual,
+            "predicted": predicted,
+            "error": error,
+        })
+
+    latest = performance_tracker_df.sort_values(['year', 'month_predicted']).iloc[-1]
     tracker = [
-        {"metric": "MAE", "value": "1.84"},
-        {"metric": "RMSE", "value": "2.41"},
-        {"metric": "MAPE", "value": "2.1%"},
-        {"metric": "Directional accuracy", "value": "76%"},
-        {"metric": "Last trained", "value": (today - timedelta(days=2)).isoformat()},
-        {"metric": "Training rows", "value": "105"},
-        {"metric": "Test rows", "value": "10"},
+        {"metric": "R² score", "value": f"{latest['r2_score']:.3f}"},
+        {"metric": "RMSE", "value": f"{latest['rmse']:.3f}"},
+        {"metric": "Movement accuracy", "value": f"{latest['movement_accuracy'] * 100:.0f}%"},
+        {"metric": "Next month prediction", "value": f"{latest['next_month_close_price_prediction']:.2f}"},
+        {"metric": "Forecast month", "value": f"{int(latest['year'])}-{int(latest['month_predicted']):02d}"},
+        {"metric": "SARIMA order", "value": latest['order']},
+        {"metric": "Seasonal order", "value": latest['seasonal_order']},
     ]
+
     return {"performance_data": rows, "performance_tracker": tracker}
 
 
@@ -223,7 +202,21 @@ def api_sector_stocks(sector):
 
 @app.route("/api/stocks")
 def api_stock_list():
-    return jsonify(STOCK_LIST)
+    try:
+        STOCK_LIST = []
+
+        working_stock_df = pd.read_csv('model_parameters/current_model_parameters.csv')
+        working_stocks = working_stock_df['stock'].tolist()
+
+        all_stock_df = pd.read_csv('stock_data/All_Stocks_Info')
+
+        for stock in working_stocks:
+            stock_name = all_stock_df.loc[all_stock_df['symbol'] == stock, 'name'].iloc[0]
+            STOCK_LIST.append({'symbol':stock,'name':stock_name})
+
+        return jsonify(STOCK_LIST)
+    except Exception as e:
+        raise NGXStockPredictionException(e,sys)
 
 
 @app.route("/api/performance/<symbol>")
@@ -233,14 +226,69 @@ def api_performance(symbol):
 
 @app.route("/api/train", methods=["POST"])
 def api_train():
-    payload = request.get_json(silent=True) or {}
-    symbol = payload.get("symbol", "unknown stock")
-    return jsonify({"ok": True, "message": f"(demo) Training request received for {symbol}."})
+    try:
+        payload = request.get_json(silent=True) or {}
+        symbol = payload.get("symbol")
+        target = payload.get("target")
 
+        if not symbol or not target:
+            return jsonify({"ok": False, "message": "Stock symbol and target are required."}), 400
+
+        symbol = symbol.upper()
+        target = target.lower()
+
+        if not symbol:
+            return jsonify({"ok": False, "message": "Stock symbol is required."}), 400
+
+        order = (
+            int(payload.get("order_p", 1)),
+            int(payload.get("order_d", 1)),
+            int(payload.get("order_q", 1)),
+        )
+        seasonal_order = (
+            int(payload.get("order_P", 1)),
+            int(payload.get("order_D", 1)),
+            int(payload.get("order_Q", 1)),
+            int(payload.get("order_s", 12)),
+        )
+
+        try:
+            train_pipeline = TrainingPipeline(
+                file_name=symbol,
+                target_name=target,
+                model_type="sarima",
+                order=order,
+                seasonal_order=seasonal_order,
+                forecast_step=int(payload.get("forecast_horizon", 1)),
+            )
+
+            artifact = train_pipeline.run_pipeline()
+
+            return jsonify({
+                "ok": True,
+                "message": f"Training complete for {symbol}. R²: {artifact.test_metric_artifact.r2_score:.3f}. RMSE: {artifact.test_metric_artifact.rmse:.3f}"
+            })
+        except Exception as e:
+            return jsonify({"ok": False, "message": f"Training failed for {symbol}: {str(e)}"}), 500
+    except Exception as e:
+        raise NGXStockPredictionException(e,sys)
+    
 
 @app.route("/api/train_all", methods=["POST"])
 def api_train_all():
-    return jsonify({"ok": True, "message": "(demo) Training request received for all stocks."})
+    try:
+        train_all_stock_obj = CreateAllStockModel()
+        train_all_stock_obj.create_all_models()
+
+        return jsonify({
+            "ok": True,
+            "message": f"Training complete. {len(train_all_stock_obj.problem_stocks)} stock(s) failed."
+                       if train_all_stock_obj.problem_stocks
+                       else "Training complete for all stocks."
+        })
+    except Exception as e:
+        return jsonify({"ok": False, "message": f"Training all stocks failed: {str(e)}"}), 500
+    
 
 
 if __name__ == "__main__":
