@@ -46,35 +46,7 @@ client = pymongo.MongoClient(mongodb_uri,tlsCAFile=ca)
 database=client[DATA_INGESTION_DATABASE_NAME]
 collection=database[DATA_INGESTION_COLLECTION_NAME]
 
-# ---------------------------------------------------------------------------
-# Sample data — replace with real pipeline output whenever you're ready.
-# Field names match exactly what static/js/api.js expects.
-# ---------------------------------------------------------------------------
 
-
-
-
-# def sample_performance(symbol: str):
-#     base = 100 + (ord(symbol[0]) % 20)
-#     rows = []
-#     today = date.today()
-#     for i in range(9, -1, -1):
-#         d = today - timedelta(days=i * 7)
-#         actual = round(base + random.uniform(-3, 3) + i * 0.6, 2)
-#         predicted = round(actual + random.uniform(-2, 2), 2)
-#         error = round((predicted - actual) / actual * 100, 2)
-#         rows.append({"date": d.isoformat(), "actual": actual, "predicted": predicted, "error": error})
-
-#     tracker = [
-#         {"metric": "MAE", "value": "1.84"},
-#         {"metric": "RMSE", "value": "2.41"},
-#         {"metric": "MAPE", "value": "2.1%"},
-#         {"metric": "Directional accuracy", "value": "76%"},
-#         {"metric": "Last trained", "value": (today - timedelta(days=2)).isoformat()},
-#         {"metric": "Training rows", "value": "105"},
-#         {"metric": "Test rows", "value": "10"},
-#     ]
-#     return {"performance_data": rows, "performance_tracker": tracker}
 
 def sample_performance(symbol: str):
     try:
@@ -97,8 +69,8 @@ def sample_performance(symbol: str):
         error = round((predicted - actual) / actual * 100, 2) if actual != 0 else None
         rows.append({
             "date": f"{int(row['year'])}-{int(row['month']):02d}",  # e.g. "2025-10"
-            "actual": actual,
-            "predicted": predicted,
+            f"actual": actual,
+            f"predicted": predicted,
             "error": error,
         })
 
@@ -107,7 +79,7 @@ def sample_performance(symbol: str):
         {"metric": "R² score", "value": f"{latest['r2_score']:.3f}"},
         {"metric": "RMSE", "value": f"{latest['rmse']:.3f}"},
         {"metric": "Movement accuracy", "value": f"{latest['movement_accuracy'] * 100:.0f}%"},
-        {"metric": "Next month prediction", "value": f"{latest['next_month_close_price_prediction']:.2f}"},
+        {"metric": f"Next month's {target} prediction", "value": f"{latest[f'next_month_{target}_prediction']:.2f}"},
         {"metric": "Forecast month", "value": f"{int(latest['year'])}-{int(latest['month_predicted']):02d}"},
         {"metric": "SARIMA order", "value": latest['order']},
         {"metric": "Seasonal order", "value": latest['seasonal_order']},

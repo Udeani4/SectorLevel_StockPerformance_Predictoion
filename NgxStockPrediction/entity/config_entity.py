@@ -15,7 +15,7 @@ class TrainingPipelineConfig:
         self.pipeline_name=training_pipeline.PIPELINE_NAME
         self.artifact_name=training_pipeline.ARTIFACT_DIR
         self.artifact_dir=os.path.join(self.artifact_name)
-        self.model_price_dir=os.path.join("final_price_model")
+        self.model_close_price_dir=os.path.join("final_close_price_model")
         self.model_returns_dir=os.path.join("final_returns_model")
         self.timestamp:str=timestamp
 

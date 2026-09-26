@@ -12,7 +12,7 @@ from NgxStockPrediction.components.model_trainer import ModelTrainer
 from NgxStockPrediction.components.model_performance_tracker import ModelPerformanceTracker
 
 from NgxStockPrediction.constant.training_pipeline import TRAINING_BUCKET_NAME
-# from NgxStockPrediction.cloud.s3_syncer import S3Sync
+from NgxStockPrediction.cloud.s3_syncer import S3Sync
 
 from NgxStockPrediction.entity.config_entity import (
     TrainingPipelineConfig,
@@ -43,7 +43,7 @@ class TrainingPipeline:
         self.order=order
         self.seasonal_order=seasonal_order
         self.forecast_step=forecast_step
-        # self.s3_sync=S3Sync()
+        self.s3_sync=S3Sync()
 
     @staticmethod
     def read_data(file_path):
@@ -170,11 +170,20 @@ class TrainingPipeline:
     ## my local final model is pushed to s3 bucket
     def sync_saved_model_dir_to_s3(self):
         try:
-            aws_bucket_url=f"s3://{TRAINING_BUCKET_NAME}/final_model/{self.training_pipeline_config.timestamp}"
+            aws_bucket_url=f"s3://{TRAINING_BUCKET_NAME}/{self.file_name}_final_model/{self.training_pipeline_config.timestamp}"
+
+            folder = os.path.join(
+                self.training_pipeline_config.artifact_dir,
+                self.file_name,
+                "model_trainer",
+                "trained_model"
+            )
+
             self.s3_sync.sync_folder_to_s3(
-                folder=self.training_pipeline_config.model_dir,
+                folder=folder,
                 aws_bucket_url=aws_bucket_url
             )
+
         except Exception as e:
             raise NGXStockPredictionException(e,sys)
         
@@ -212,10 +221,10 @@ class TrainingPipeline:
 
             logging.info("Machine learning pipeline excecuted")
 
-            # logging.info("Pushing Artifact and Saved Model to AWS S3 Bucket")
-            # self.sync_artifact_dir_to_s3()
-            # self.sync_saved_model_dir_to_s3()
-            # logging.info("Syncing to AWS S3 Bucket successful")
+            logging.info("Pushing Artifact and Saved Model to AWS S3 Bucket")
+            self.sync_artifact_dir_to_s3()
+            self.sync_saved_model_dir_to_s3()
+            logging.info("Syncing to AWS S3 Bucket successful")
 
             return model_trainer_artifact
         
