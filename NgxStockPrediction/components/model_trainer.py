@@ -126,7 +126,7 @@ class ModelTrainer:
             performance_metric = get_performance_score(
                 y_true=np.asarray(y_test), y_pred=np.asarray(y_pred)
             )
-            # track the experiments with flow
+            # track the experiments with flow.
             self.track_mlflow( ## FIND OUT WHY THIS SLOWS DOWN THE PIPELINE
                 model_type='sarima',
                 best_model=model,
