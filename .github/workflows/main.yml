@@ -53,18 +53,17 @@ jobs:
       - name: Build, tag, and push image to Amazon ECR
         id: build-image
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
+          IMAGE_URI: ${{ secrets.AWS_ECR_LOGIN_URI }}
           IMAGE_TAG: latest
         run: |
           # Build the Docker image
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker build -t $IMAGE_URI:$IMAGE_TAG .
 
           # Push the image
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $IMAGE_URI:$IMAGE_TAG
 
           # Output the image URI
-          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "image=$IMAGE_URI:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
   Continuous-Deployment:
     needs: build-and-push-ecr-image
@@ -98,5 +97,3 @@ jobs:
       - name: Clean previous images and containers
         run: |
           docker system prune -f
-
-    ## NOTE: The continuous deployment fails not because of your build or github action. It is because of no more disk space in the EC2 instance. You need to purchase a higher level EC2 instance
