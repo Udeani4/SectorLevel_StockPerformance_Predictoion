@@ -220,4 +220,4 @@ __marimo__/
 .streamlit/secrets.toml
 
 ## we will remove from .gitignore in the final production
-stock_data/
+stock_data/".env" 
