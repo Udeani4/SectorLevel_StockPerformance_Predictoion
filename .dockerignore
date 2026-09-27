@@ -1,0 +1,55 @@
+# Source Control
+.git
+.gitignore
+
+# Python Virtual Environments
+venv/
+.venv/
+env/
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+
+# Environment Variables and Secrets
+.env
+.env.local
+*.pem
+*.key
+
+# Logs
+logs/
+*.log
+
+# Build Artifacts
+build/
+dist/
+*.egg-info/
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# ML Training Artifacts (if not needed in production)
+catboost_info/
+notebook/
+
+# Large datasets used only for training
+data/
+raw_data/
+datasets/
+
+# Local testing files
+tests/
+
+# Docker
+docker-compose.yml

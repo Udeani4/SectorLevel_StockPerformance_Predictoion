@@ -183,7 +183,6 @@ class TrainingPipeline:
                 folder=folder,
                 aws_bucket_url=aws_bucket_url
             )
-
         except Exception as e:
             raise NGXStockPredictionException(e,sys)
         
