@@ -122,6 +122,7 @@ class CreateAllStockModel:
                 except Exception as e:
                     print(f'Error occured with {key}')
                     self.problem_stocks.append(key)
+                    # raise NGXStockPredictionException(e,sys)
 
             dataframe = pd.DataFrame(data=self.data)
             os.makedirs('model_parameters', exist_ok=True)

@@ -41,8 +41,9 @@
         const returnClass = s.predicted_return >= 0 ? "pos" : "neg";
         const accPct = Math.round(s.accuracy * 100);
         const moveAccPct = Math.round(s.movement_accuracy * 100);
+        const href = `/stock.html?sector=${encodeURIComponent(sector)}&symbol=${encodeURIComponent(s.symbol)}`;
         return `
-        <div class="row-item stocks">
+        <a class="row-item stocks" href="${href}">
           <div class="row-name">
             <span class="primary">${s.symbol}</span>
             <span class="secondary">${s.name || ""}</span>
@@ -57,7 +58,7 @@
             <span class="meter-track"><span class="meter-fill" style="--fill:${moveAccPct}%"></span></span>
             <span class="meter-label">${moveAccPct}%</span>
           </div>
-        </div>`;
+        </a>`;
       })
       .join("");
   }

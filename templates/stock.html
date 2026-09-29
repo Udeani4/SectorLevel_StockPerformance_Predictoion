@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stock trend — NGX Predictions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css">
+<style>
+  .stat-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    margin-bottom: 1.8rem;
+  }
+  .stat {
+    background: var(--surface);
+    padding: 1.1rem 1.2rem;
+  }
+  .stat .label {
+    font-size: 0.76rem;
+    color: var(--muted);
+    margin-bottom: 0.35rem;
+  }
+  .stat .value {
+    font-family: var(--font-mono);
+    font-size: 1.2rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat .value.pos { color: var(--positive); }
+  .stat .value.neg { color: var(--negative); }
+  .stat .value.up { color: var(--positive); }
+  .stat .value.down { color: var(--negative); }
+
+  @media (max-width: 640px) {
+    .stat-strip { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .chart-card {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    padding: 1.4rem;
+  }
+  .chart-legend-note {
+    display: flex;
+    gap: 1.4rem;
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-top: 0.8rem;
+  }
+  .chart-legend-note .swatch {
+    display: inline-block;
+    width: 14px;
+    height: 3px;
+    border-radius: 2px;
+    margin-right: 0.4rem;
+    transform: translateY(-3px);
+  }
+</style>
+</head>
+<body>
+
+  <header class="topbar">
+    <a class="mark" href="/index.html">
+      <span class="dot"></span>
+      <span class="word">NGX Predictions</span>
+      <span class="sub">User</span>
+    </a>
+    <nav>
+      <a href="/user.html">Sectors</a>
+      <a href="/developer.html">Developer</a>
+    </nav>
+  </header>
+
+  <main class="shell">
+    <div class="crumb">
+      <a href="/user.html">Sectors</a> /
+      <a href="#" id="sector-crumb-link">…</a> /
+      <span id="symbol-crumb">…</span>
+    </div>
+    <div class="page-head">
+      <div>
+        <h1 id="stock-title">Loading…</h1>
+        <p id="stock-subtitle">Past 10 months of actual price alongside the model's predicted price ahead.</p>
+      </div>
+    </div>
+
+    <div class="stat-strip" id="stat-strip">
+      <div class="stat"><div class="label">Predicted return</div><div class="value" id="stat-return">—</div></div>
+      <div class="stat"><div class="label">Accuracy</div><div class="value" id="stat-accuracy">—</div></div>
+      <div class="stat"><div class="label">Movement</div><div class="value" id="stat-movement">—</div></div>
+      <div class="stat"><div class="label">Movement accuracy</div><div class="value" id="stat-movement-accuracy">—</div></div>
+    </div>
+
+    <div class="chart-card">
+      <div id="trend-chart">
+        <div class="state-note" style="border:none; padding:0.5rem 0;"><strong>Loading chart…</strong></div>
+      </div>
+      <div class="chart-legend-note">
+        <span><span class="swatch" style="background:#0E5E3D"></span>Actual price (past 10 months)</span>
+        <span><span class="swatch" style="background:#B9862F; border-top: 2px dotted #B9862F; height:0;"></span>Predicted price (ahead)</span>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/stock.js"></script>
+</body>
+</html>
