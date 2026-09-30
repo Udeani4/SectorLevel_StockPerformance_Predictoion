@@ -35,37 +35,151 @@ const NGX = (() => {
   ];
 
   const MOCK_STOCKS = {
-    "Banking": [
-      { symbol: "ZENITHBANK", name: "Zenith Bank Plc", predicted_return: 0.052, accuracy: 0.83, movement: "up", movement_accuracy: 0.88 },
-      { symbol: "GTCO", name: "Guaranty Trust Holding Co.", predicted_return: 0.041, accuracy: 0.80, movement: "up", movement_accuracy: 0.79 },
-      { symbol: "UBA", name: "United Bank for Africa", predicted_return: 0.037, accuracy: 0.76, movement: "up", movement_accuracy: 0.74 },
-      { symbol: "ACCESSCORP", name: "Access Holdings Plc", predicted_return: 0.028, accuracy: 0.72, movement: "down", movement_accuracy: 0.61 },
-      { symbol: "FBNH", name: "FBN Holdings Plc", predicted_return: -0.011, accuracy: 0.65, movement: "down", movement_accuracy: 0.69 },
+    Banking: [
+      {
+        symbol: "ZENITHBANK",
+        name: "Zenith Bank Plc",
+        predicted_return: 0.052,
+        accuracy: 0.83,
+        movement: "up",
+        movement_accuracy: 0.88,
+      },
+      {
+        symbol: "GTCO",
+        name: "Guaranty Trust Holding Co.",
+        predicted_return: 0.041,
+        accuracy: 0.8,
+        movement: "up",
+        movement_accuracy: 0.79,
+      },
+      {
+        symbol: "UBA",
+        name: "United Bank for Africa",
+        predicted_return: 0.037,
+        accuracy: 0.76,
+        movement: "up",
+        movement_accuracy: 0.74,
+      },
+      {
+        symbol: "ACCESSCORP",
+        name: "Access Holdings Plc",
+        predicted_return: 0.028,
+        accuracy: 0.72,
+        movement: "down",
+        movement_accuracy: 0.61,
+      },
+      {
+        symbol: "FBNH",
+        name: "FBN Holdings Plc",
+        predicted_return: -0.011,
+        accuracy: 0.65,
+        movement: "down",
+        movement_accuracy: 0.69,
+      },
     ],
     "Consumer Goods": [
-      { symbol: "NESTLE", name: "Nestle Nigeria Plc", predicted_return: 0.031, accuracy: 0.78, movement: "up", movement_accuracy: 0.75 },
-      { symbol: "BUAFOODS", name: "BUA Foods Plc", predicted_return: 0.024, accuracy: 0.71, movement: "up", movement_accuracy: 0.70 },
-      { symbol: "NB", name: "Nigerian Breweries Plc", predicted_return: -0.009, accuracy: 0.66, movement: "down", movement_accuracy: 0.64 },
+      {
+        symbol: "NESTLE",
+        name: "Nestle Nigeria Plc",
+        predicted_return: 0.031,
+        accuracy: 0.78,
+        movement: "up",
+        movement_accuracy: 0.75,
+      },
+      {
+        symbol: "BUAFOODS",
+        name: "BUA Foods Plc",
+        predicted_return: 0.024,
+        accuracy: 0.71,
+        movement: "up",
+        movement_accuracy: 0.7,
+      },
+      {
+        symbol: "NB",
+        name: "Nigerian Breweries Plc",
+        predicted_return: -0.009,
+        accuracy: 0.66,
+        movement: "down",
+        movement_accuracy: 0.64,
+      },
     ],
     "Oil & Gas": [
-      { symbol: "SEPLAT", name: "Seplat Energy Plc", predicted_return: -0.018, accuracy: 0.70, movement: "down", movement_accuracy: 0.72 },
-      { symbol: "OANDO", name: "Oando Plc", predicted_return: -0.009, accuracy: 0.62, movement: "down", movement_accuracy: 0.58 },
+      {
+        symbol: "SEPLAT",
+        name: "Seplat Energy Plc",
+        predicted_return: -0.018,
+        accuracy: 0.7,
+        movement: "down",
+        movement_accuracy: 0.72,
+      },
+      {
+        symbol: "OANDO",
+        name: "Oando Plc",
+        predicted_return: -0.009,
+        accuracy: 0.62,
+        movement: "down",
+        movement_accuracy: 0.58,
+      },
     ],
     "Industrial Goods": [
-      { symbol: "DANGCEM", name: "Dangote Cement Plc", predicted_return: 0.036, accuracy: 0.79, movement: "up", movement_accuracy: 0.81 },
-      { symbol: "BUACEMENT", name: "BUA Cement Plc", predicted_return: 0.029, accuracy: 0.74, movement: "up", movement_accuracy: 0.70 },
+      {
+        symbol: "DANGCEM",
+        name: "Dangote Cement Plc",
+        predicted_return: 0.036,
+        accuracy: 0.79,
+        movement: "up",
+        movement_accuracy: 0.81,
+      },
+      {
+        symbol: "BUACEMENT",
+        name: "BUA Cement Plc",
+        predicted_return: 0.029,
+        accuracy: 0.74,
+        movement: "up",
+        movement_accuracy: 0.7,
+      },
     ],
-    "Insurance": [
-      { symbol: "AIICO", name: "AIICO Insurance Plc", predicted_return: 0.014, accuracy: 0.60, movement: "up", movement_accuracy: 0.55 },
-      { symbol: "NEM", name: "NEM Insurance Plc", predicted_return: 0.009, accuracy: 0.64, movement: "up", movement_accuracy: 0.59 },
+    Insurance: [
+      {
+        symbol: "AIICO",
+        name: "AIICO Insurance Plc",
+        predicted_return: 0.014,
+        accuracy: 0.6,
+        movement: "up",
+        movement_accuracy: 0.55,
+      },
+      {
+        symbol: "NEM",
+        name: "NEM Insurance Plc",
+        predicted_return: 0.009,
+        accuracy: 0.64,
+        movement: "up",
+        movement_accuracy: 0.59,
+      },
     ],
-    "Agriculture": [
-      { symbol: "OKOMUOIL", name: "Okomu Oil Palm Plc", predicted_return: -0.004, accuracy: 0.59, movement: "down", movement_accuracy: 0.53 },
-      { symbol: "PRESCO", name: "Presco Plc", predicted_return: -0.008, accuracy: 0.57, movement: "down", movement_accuracy: 0.55 },
+    Agriculture: [
+      {
+        symbol: "OKOMUOIL",
+        name: "Okomu Oil Palm Plc",
+        predicted_return: -0.004,
+        accuracy: 0.59,
+        movement: "down",
+        movement_accuracy: 0.53,
+      },
+      {
+        symbol: "PRESCO",
+        name: "Presco Plc",
+        predicted_return: -0.008,
+        accuracy: 0.57,
+        movement: "down",
+        movement_accuracy: 0.55,
+      },
     ],
   };
 
-  const MOCK_STOCK_LIST = Object.values(MOCK_STOCKS).flat().map(s => ({ symbol: s.symbol, name: s.name }));
+  const MOCK_STOCK_LIST = Object.values(MOCK_STOCKS)
+    .flat()
+    .map((s) => ({ symbol: s.symbol, name: s.name }));
 
   function mockPerformance(symbol) {
     const base = 100 + (symbol.charCodeAt(0) % 20);
@@ -76,7 +190,12 @@ const NGX = (() => {
       const actual = +(base + Math.sin(i) * 4 + i * 0.6).toFixed(2);
       const predicted = +(actual + (Math.random() - 0.5) * 3).toFixed(2);
       const error = +(((predicted - actual) / actual) * 100).toFixed(2);
-      rows.push({ date: d.toISOString().slice(0, 10), actual, predicted, error });
+      rows.push({
+        date: d.toISOString().slice(0, 10),
+        actual,
+        predicted,
+        error,
+      });
     }
     return {
       performance_data: rows,
@@ -85,11 +204,69 @@ const NGX = (() => {
         { metric: "RMSE", value: "2.41" },
         { metric: "MAPE", value: "2.1%" },
         { metric: "Directional accuracy", value: "76%" },
-        { metric: "Last trained", value: new Date(Date.now() - 86400000 * 2).toISOString().slice(0, 10) },
+        {
+          metric: "Last trained",
+          value: new Date(Date.now() - 86400000 * 2).toISOString().slice(0, 10),
+        },
         { metric: "Training rows", value: "105" },
         { metric: "Test rows", value: "10" },
       ],
     };
+  }
+
+  function findStockMeta(symbol) {
+    for (const [sector, stocks] of Object.entries(MOCK_STOCKS)) {
+      const found = stocks.find((s) => s.symbol === symbol);
+      if (found) return { ...found, sector };
+    }
+    return {
+      symbol,
+      name: symbol,
+      sector: "",
+      predicted_return: 0,
+      accuracy: 0,
+      movement: "up",
+      movement_accuracy: 0,
+    };
+  }
+
+  function mockTrend(symbol) {
+    const meta = findStockMeta(symbol);
+    const base = 30 + (symbol.charCodeAt(0) % 40);
+    const history = [];
+    const weeks = 43; // ~10 months of weekly points
+    let price = base;
+
+    for (let i = weeks; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i * 7);
+      price = Math.max(1, price + (Math.random() - 0.48) * (base * 0.02));
+      history.push({
+        date: d.toISOString().slice(0, 10),
+        price: +price.toFixed(2),
+      });
+    }
+
+    const forecast = [];
+    let fPrice = history[history.length - 1].price;
+    const direction = meta.movement === "up" ? 1 : -1;
+    const forecastWeeks = 8;
+    for (let i = 1; i <= forecastWeeks; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() + i * 7);
+      fPrice = Math.max(
+        1,
+        fPrice +
+          direction * (base * 0.006) +
+          (Math.random() - 0.5) * (base * 0.01),
+      );
+      forecast.push({
+        date: d.toISOString().slice(0, 10),
+        price: +fPrice.toFixed(2),
+      });
+    }
+
+    return { ...meta, history, forecast };
   }
 
   async function getJSON(url, fallback) {
@@ -98,7 +275,9 @@ const NGX = (() => {
       if (!res.ok) throw new Error(`${res.status}`);
       return await res.json();
     } catch (err) {
-      console.warn(`[NGX] ${url} unavailable, using mock data (${err.message})`);
+      console.warn(
+        `[NGX] ${url} unavailable, using mock data (${err.message})`,
+      );
       return fallback;
     }
   }
@@ -113,7 +292,9 @@ const NGX = (() => {
       if (!res.ok) throw new Error(`${res.status}`);
       return await res.json();
     } catch (err) {
-      console.warn(`[NGX] ${url} unavailable, using mock response (${err.message})`);
+      console.warn(
+        `[NGX] ${url} unavailable, using mock response (${err.message})`,
+      );
       return fallback;
     }
   }
@@ -122,12 +303,24 @@ const NGX = (() => {
     getSectors: () => getJSON("/api/sectors", MOCK_SECTORS),
 
     getStocksForSector: (sector) =>
-      getJSON(`/api/sectors/${encodeURIComponent(sector)}/stocks`, MOCK_STOCKS[sector] || []),
+      getJSON(
+        `/api/sectors/${encodeURIComponent(sector)}/stocks`,
+        MOCK_STOCKS[sector] || [],
+      ),
 
     getStockList: () => getJSON("/api/stocks", MOCK_STOCK_LIST),
 
     getPerformance: (symbol) =>
-      getJSON(`/api/performance/${encodeURIComponent(symbol)}`, mockPerformance(symbol)),
+      getJSON(
+        `/api/performance/${encodeURIComponent(symbol)}`,
+        mockPerformance(symbol),
+      ),
+
+    getStockTrend: (symbol) =>
+      getJSON(
+        `/api/stocks/${encodeURIComponent(symbol)}/trend`,
+        mockTrend(symbol),
+      ),
 
     trainStock: (payload) =>
       postJSON("/api/train", payload, {
@@ -136,10 +329,15 @@ const NGX = (() => {
       }),
 
     trainAll: () =>
-      postJSON("/api/train_all", {}, {
-        ok: true,
-        message: "(demo) Training request queued for all stocks. Wire up /api/train_all to run it for real.",
-      }),
+      postJSON(
+        "/api/train_all",
+        {},
+        {
+          ok: true,
+          message:
+            "(demo) Training request queued for all stocks. Wire up /api/train_all to run it for real.",
+        },
+      ),
 
     allSectorNames: () => Object.keys(MOCK_STOCKS),
   };

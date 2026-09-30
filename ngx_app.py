@@ -33,6 +33,7 @@ from NgxStockPrediction.constant.training_pipeline import DATA_INGESTION_DATABAS
 import pandas as pd
 import random
 from datetime import date, timedelta
+from dateutil.relativedelta import relativedelta
 
 from flask import Flask, jsonify, render_template, request
 
@@ -45,54 +46,6 @@ client = pymongo.MongoClient(mongodb_uri,tlsCAFile=ca)
 
 database=client[DATA_INGESTION_DATABASE_NAME]
 collection=database[DATA_INGESTION_COLLECTION_NAME]
-
-
-STOCKS_BY_SECTOR = {
-    "Banking": [
-        {"symbol": "ZENITHBANK", "name": "Zenith Bank Plc", "predicted_return": 0.052,
-         "accuracy": 0.83, "movement": "up", "movement_accuracy": 0.88},
-        {"symbol": "GTCO", "name": "Guaranty Trust Holding Co.", "predicted_return": 0.041,
-         "accuracy": 0.80, "movement": "up", "movement_accuracy": 0.79},
-        {"symbol": "UBA", "name": "United Bank for Africa", "predicted_return": 0.037,
-         "accuracy": 0.76, "movement": "up", "movement_accuracy": 0.74},
-        {"symbol": "ACCESSCORP", "name": "Access Holdings Plc", "predicted_return": 0.028,
-         "accuracy": 0.72, "movement": "down", "movement_accuracy": 0.61},
-        {"symbol": "FBNH", "name": "FBN Holdings Plc", "predicted_return": -0.011,
-         "accuracy": 0.65, "movement": "down", "movement_accuracy": 0.69},
-    ],
-    "Consumer Goods": [
-        {"symbol": "NESTLE", "name": "Nestle Nigeria Plc", "predicted_return": 0.031,
-         "accuracy": 0.78, "movement": "up", "movement_accuracy": 0.75},
-        {"symbol": "BUAFOODS", "name": "BUA Foods Plc", "predicted_return": 0.024,
-         "accuracy": 0.71, "movement": "up", "movement_accuracy": 0.70},
-        {"symbol": "NB", "name": "Nigerian Breweries Plc", "predicted_return": -0.009,
-         "accuracy": 0.66, "movement": "down", "movement_accuracy": 0.64},
-    ],
-    "Oil & Gas": [
-        {"symbol": "SEPLAT", "name": "Seplat Energy Plc", "predicted_return": -0.018,
-         "accuracy": 0.70, "movement": "down", "movement_accuracy": 0.72},
-        {"symbol": "OANDO", "name": "Oando Plc", "predicted_return": -0.009,
-         "accuracy": 0.62, "movement": "down", "movement_accuracy": 0.58},
-    ],
-    "Industrial Goods": [
-        {"symbol": "DANGCEM", "name": "Dangote Cement Plc", "predicted_return": 0.036,
-         "accuracy": 0.79, "movement": "up", "movement_accuracy": 0.81},
-        {"symbol": "BUACEMENT", "name": "BUA Cement Plc", "predicted_return": 0.029,
-         "accuracy": 0.74, "movement": "up", "movement_accuracy": 0.70},
-    ],
-    "Insurance": [
-        {"symbol": "AIICO", "name": "AIICO Insurance Plc", "predicted_return": 0.014,
-         "accuracy": 0.60, "movement": "up", "movement_accuracy": 0.55},
-        {"symbol": "NEM", "name": "NEM Insurance Plc", "predicted_return": 0.009,
-         "accuracy": 0.64, "movement": "up", "movement_accuracy": 0.59},
-    ],
-    "Agriculture": [
-        {"symbol": "OKOMUOIL", "name": "Okomu Oil Palm Plc", "predicted_return": -0.004,
-         "accuracy": 0.59, "movement": "down", "movement_accuracy": 0.53},
-        {"symbol": "PRESCO", "name": "Presco Plc", "predicted_return": -0.008,
-         "accuracy": 0.57, "movement": "down", "movement_accuracy": 0.55},
-    ],
-}
 
 
 def sample_performance(symbol: str):
@@ -148,75 +101,56 @@ def get_stock_sector_name(stock: str):
         raise NGXStockPredictionException(e, sys)
 
 def find_stock(symbol: str):
-    """Look up a stock's metadata (and the sector it belongs to) by symbol.
-
-    Returns None if the stock isn't found or its artifacts aren't ready,
-    so callers can fall back to a safe default
-    (see sample_trend()'s `find_stock(symbol) or {...}` pattern).
-    """
+    """Look up a stock's metadata (and the sector it belongs to) by symbol."""
     try:
         stock_sector = get_stock_sector_name(stock=symbol)
 
         params_df = pd.read_csv("model_parameters/current_model_parameters.csv")
         target = params_df.loc[params_df["stock"] == symbol, "target"].iloc[0]
 
-        all_stock_df = pd.read_csv("stock_data/All_Stocks_Info.csv")  # confirm this filename/extension
+        all_stock_df = pd.read_csv("stock_data/All_Stocks_Info")
         stock_name = all_stock_df.loc[all_stock_df["symbol"] == symbol, "name"].iloc[0]
 
         performance_data = pd.read_csv(f"Artifacts/{symbol}/performance_tracker/{target}/performance_data.csv")
         performance_tracker = pd.read_csv(f"Artifacts/{symbol}/performance_tracker/{target}/performance_tracker.csv")
 
-        next_month_pred = performance_tracker.loc[performance_tracker["stock"] == symbol, f"next_month_{target}_prediction"].iloc[-1]
-        pred_accuracy = performance_tracker.loc[performance_tracker["stock"] == symbol, "r2_score"].iloc[-1]
-        movement_accuracy = performance_tracker.loc[performance_tracker["stock"] == symbol, "movement_accuracy"].iloc[-1]
+        # performance_data / performance_tracker are already scoped to this one
+        # stock by the folder path — there's no "stock" column to filter on.
+        next_month_pred = performance_tracker[f"next_month_{target}_prediction"].iloc[-1]
+        pred_accuracy = performance_tracker["r2_score"].iloc[-1]
+        movement_accuracy = performance_tracker["movement_accuracy"].iloc[-1]
 
         if target == "close_price":
-            current_value = performance_data.loc[performance_data["stock"] == symbol, "true"].iloc[-1]
+            current_value = performance_data["true"].iloc[-1]
             predicted_return = (next_month_pred - current_value) / current_value  # fraction, not a percent
             movement = "up" if predicted_return > 0 else "down"
         else:
-            predicted_return = next_month_pred
+            predicted_return = next_month_pred/100 ## just to align with the JS backend stock.js
             movement = "up" if next_month_pred > 0 else "down"
 
         return {
             "symbol": symbol,
             "name": stock_name,
             "sector": stock_sector,
-            "predicted_return": predicted_return,
-            "accuracy": pred_accuracy,
+            "predicted_return": float(predicted_return),   # cast off numpy types for jsonify
+            "accuracy": float(pred_accuracy),
             "movement": movement,
-            "movement_accuracy": movement_accuracy,
+            "movement_accuracy": float(movement_accuracy),
         }
 
     except Exception as e:
         print(f"[find_stock] couldn't build metadata for {symbol}: {e}")
         return None
 
-# trend_sample={
-#   "symbol": "ZENITHBANK", "name": "...", "sector": "Banking",
-#   "predicted_return": 0.052, "accuracy": 0.83,
-#   "movement": "up", "movement_accuracy": 0.88,
-#   "history":  [{"date": "2025-12-02", "price": 40.49}, ...],
-#   "forecast": [{"date": "2026-10-06", "price": 39.09}, ...],
-# }
-
-from dateutil.relativedelta import relativedelta
 
 def sample_trend(symbol: str):
-    """Past ~10 months of actual price (from performance_data, monthly) +
-    next month's predicted price.
-
-    history:  the last 10 monthly {date, price} rows from
-              Artifacts/<symbol>/.../performance_data.csv, using 'true' as price.
-    forecast: a single {date, price} point one calendar month ahead, built from
-              find_stock()'s predicted_return applied to the latest actual price.
-    """
     meta = find_stock(symbol) or {
         "symbol": symbol, "name": symbol, "sector": "", "predicted_return": 0,
         "accuracy": 0, "movement": "up", "movement_accuracy": 0,
     }
 
     history = []
+    target = None
     try:
         params_df = pd.read_csv("model_parameters/current_model_parameters.csv")
         target = params_df.loc[params_df["stock"] == symbol, "target"].iloc[0]
@@ -224,28 +158,41 @@ def sample_trend(symbol: str):
         performance_data = pd.read_csv(
             f"Artifacts/{symbol}/performance_tracker/{target}/performance_data.csv"
         )
-        stock_rows = performance_data.loc[performance_data["stock"] == symbol].copy()
-        stock_rows["date"] = pd.to_datetime(stock_rows["date"])
-        stock_rows = stock_rows.sort_values("date").tail(10)  # last ~10 months
+        stock_rows = performance_data.copy()
+        stock_rows["date"] = pd.to_datetime(
+            stock_rows["year"].astype(str) + "-" + stock_rows["month"].astype(str) + "-01"
+        )
+        stock_rows = stock_rows.sort_values("date").tail(10)
 
         history = [
             {"date": row["date"].date().isoformat(), "price": round(float(row["true"]), 2)}
             for _, row in stock_rows.iterrows()
-        ]
+        ] if target=="close_price" else [
+            {"date": row["date"].date().isoformat(), "return": round(float(row["true"]), 2)}
+            for _, row in stock_rows.iterrows()
+        ] ## made change here
     except Exception as e:
         print(f"[sample_trend] couldn't load history for {symbol}: {e}")
 
     forecast = []
     if history:
-        last_price = history[-1]["price"]
-        last_date = date.fromisoformat(history[-1]["date"])
-        next_price = round(last_price * (1 + meta["predicted_return"]), 2)
-        next_date = last_date + relativedelta(months=1)
-        forecast = [{"date": next_date.isoformat(), "price": next_price}]
+        try:
+            last_price = history[-1]["price"] if target=="close_price" else history[-1]["return"] ## made change here
+            last_date = date.fromisoformat(history[-1]["date"])
+            next_price = round(last_price * (1 + meta["predicted_return"]), 2) if target=="close_price" else meta["predicted_return"]*100 ## to account for the former division. This is just to align with the JS. We will make the appropriate adjustments in due time
+            next_date = last_date + relativedelta(months=1)
+            forecast = [{"date": next_date.isoformat(), "price": next_price}] if target=="close_price" else [{"date": next_date.isoformat(), "return": next_price}]
+        except Exception as e:
+            print(f"[sample_trend] couldn't build forecast for {symbol}: {e}")
 
-    return {**meta, "history": history, "forecast": forecast}
+    if target == "close_price":
+        value_type = "price"
+    elif target:
+        value_type = "returns"
+    else:
+        value_type = "unknown"  # target lookup itself failed — see note below
 
-
+    return {**meta, "history": history, "forecast": forecast, "value_type": value_type}
 # ---------------------------------------------------------------------------
 # Pages — templates/*.html, served through Flask's template loader
 # ---------------------------------------------------------------------------
@@ -421,7 +368,10 @@ def api_train_all():
 
 @app.route("/api/stocks/<symbol>/trend")
 def api_stock_trend(symbol):
-    return jsonify(sample_trend(symbol))
+    trend = sample_trend(symbol)  # let it crash with the real traceback
+    print(trend)
+    return jsonify(trend)
+    
 
 
 
