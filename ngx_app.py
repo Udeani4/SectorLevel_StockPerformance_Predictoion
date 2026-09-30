@@ -161,7 +161,7 @@ def sample_trend(symbol: str):
         stock_rows = performance_data.copy()
         stock_rows["date"] = pd.to_datetime(
             stock_rows["year"].astype(str) + "-" + stock_rows["month"].astype(str) + "-01"
-        )
+        ) + pd.offsets.MonthEnd(0)  # rolls the 1st of the month forward to that month's last day
         stock_rows = stock_rows.sort_values("date").tail(10)
 
         history = [
@@ -180,7 +180,7 @@ def sample_trend(symbol: str):
             last_price = history[-1]["price"] if target=="close_price" else history[-1]["return"] ## made change here
             last_date = date.fromisoformat(history[-1]["date"])
             next_price = round(last_price * (1 + meta["predicted_return"]), 2) if target=="close_price" else meta["predicted_return"]*100 ## to account for the former division. This is just to align with the JS. We will make the appropriate adjustments in due time
-            next_date = last_date + relativedelta(months=1)
+            next_date = last_date + relativedelta(months=1,day=31)
             forecast = [{"date": next_date.isoformat(), "price": next_price}] if target=="close_price" else [{"date": next_date.isoformat(), "return": next_price}]
         except Exception as e:
             print(f"[sample_trend] couldn't build forecast for {symbol}: {e}")
