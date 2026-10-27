@@ -7,18 +7,18 @@ import os
 
 load_dotenv()
 
-# if __name__=="__main__":
-#     uri = os.getenv("MONGO_DB_CLUSTER_URL")
-#     client = pymongo.MongoClient(uri, tlsCAFile=certifi.where(), serverSelectionTimeoutMS=5000)
+if __name__=="__main__":
+    uri = os.getenv("MONGO_DB_CLUSTER_URL")
+    client = pymongo.MongoClient(uri, tlsCAFile=certifi.where(), serverSelectionTimeoutMS=5000)
 
-#     try:
-#         print(client.admin.command('ping'))
-#         print("Connected successfully!")
-#     except Exception as e:
-#         print("Connection failed:", e)
+    try:
+        print(client.admin.command('ping'))
+        print("Connected successfully!")
+    except Exception as e:
+        print("Connection failed:", e)
 
-uri = os.getenv("MONGO_DB_CLUSTER_URL")
-client = pymongo.MongoClient(uri, tlsCAFile=certifi.where(), serverSelectionTimeoutMS=5000)
+# uri = os.getenv("MONGO_DB_CLUSTER_URL")
+# client = pymongo.MongoClient(uri, tlsCAFile=certifi.where(), serverSelectionTimeoutMS=5000)
 
 # ngx_api_key=os.getenv("NGX_API_KEY")
 # ngxStockDataExtract=NGXStockDataExtract()
